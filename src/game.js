@@ -151,31 +151,19 @@
   FX.badge = function () { [0, 7, 12, 16, 19, 24].forEach(function (s, i) { tone(392 * Math.pow(2, s / 12), 0.24, 'square', 0.1, i * 0.08); }); buzz([20, 30, 20, 30, 70]); };
   FX.ai = function () { tone(440, 0.08, 'sine', 0.12); tone(660, 0.1, 'sine', 0.12, 0.08); tone(880, 0.14, 'sine', 0.12, 0.16); buzz([10, 20, 10]); };
 
-  var fxc = $('fx'), fxx = fxc.getContext ? fxc.getContext('2d') : null, parts = [], fxr = 0;
-  function sizeCv() { fxc.width = window.innerWidth; fxc.height = window.innerHeight; }
-  window.addEventListener('resize', sizeCv); sizeCv();
-  document.addEventListener('visibilitychange', function () { if (document.hidden) { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); } });
-  var COLS = ['#3f6a8f', '#d9a441', '#2b3440', '#8fb0cc', '#e6c274', '#ffffff'];
+  var fxLayer = $('fx'), COLS = ['#3f6a8f', '#d9a441', '#2b3440', '#8fb0cc', '#e6c274', '#ffffff'];
+  /* Confettis en CSS : chaque morceau s'anime seul puis se retire seul. Pas de boucle d'animation qui puisse se figer. */
   function burst(x, y, n, pow) {
-    if (RM || !fxx) return;
+    if (RM || !fxLayer) return;
+    n = Math.min(n, 34);
     for (var i = 0; i < n; i++) {
-      var a = Math.random() * Math.PI * 2, v = 2 + Math.random() * pow;
-      parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - pow * 0.6, r: 3 + Math.random() * 4, c: COLS[i % COLS.length], rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, life: 55 + Math.random() * 35 });
+      var el = document.createElement('i'), a = Math.random() * Math.PI * 2, v = (40 + Math.random() * 38) * (pow / 6 + 0.6), dur = 0.9 + Math.random() * 0.6;
+      el.className = 'cf';
+      el.style.cssText = 'left:' + x + 'px;top:' + y + 'px;width:' + (5 + Math.random() * 5) + 'px;height:' + (3 + Math.random() * 4) + 'px;background:' + COLS[i % COLS.length] +
+        ';--dx:' + Math.round(Math.cos(a) * v) + 'px;--up:' + Math.round(Math.sin(a) * v * 0.8 - 30) + 'px;--fall:' + Math.round(70 + Math.random() * 90) + 'px;--rot:' + Math.round((Math.random() - 0.5) * 900) + 'deg;animation-duration:' + dur.toFixed(2) + 's';
+      fxLayer.appendChild(el);
+      (function (e) { setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1800); })(el);
     }
-    if (fxr) cancelAnimationFrame(fxr);
-    fxr = requestAnimationFrame(loop);
-    /* Filet de sécurité : si le navigateur suspend l'animation, rien ne doit rester figé à l'écran. */
-    clearTimeout(burst.t); burst.t = setTimeout(function () { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); }, 3200);
-  }
-  function loop() {
-    fxx.clearRect(0, 0, fxc.width, fxc.height);
-    parts = parts.filter(function (p) { return p.life > 0 && p.y < fxc.height + 20; });
-    parts.forEach(function (p) {
-      p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.vx *= 0.99; p.rot += p.vr; p.life--;
-      fxx.save(); fxx.translate(p.x, p.y); fxx.rotate(p.rot); fxx.fillStyle = p.c; fxx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fxx.restore();
-    });
-    fxr = parts.length ? requestAnimationFrame(loop) : 0;
-    if (!parts.length) fxx.clearRect(0, 0, fxc.width, fxc.height);
   }
   function pop(text, x, y) {
     if (RM) return;

@@ -238,10 +238,12 @@ label.f { display: block; margin: 12px 0 4px; font-weight: 500; font-size: 11px;
 .ico.on { background: var(--sun); border-color: var(--sun); color: var(--on-sun); }
 @media (max-width: 640px) { #runner { top: 44px; width: 78px; height: 138px; } }
 /* effets */
-#fx { position: fixed; inset: 0; pointer-events: none; z-index: 40; }
-.pop { position: fixed; z-index: 41; pointer-events: none; font: 600 30px var(--f-display); letter-spacing: .06em; color: var(--ink); text-shadow: 0 2px 0 var(--night), 0 0 14px var(--sun); transform: translate(-50%, -50%); animation: pop 1s ease-out forwards; white-space: nowrap; }
+#fx { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.cf { position: absolute; border-radius: 1px; opacity: 0; animation: cf 1.2s cubic-bezier(.2, .7, .4, 1) forwards; will-change: transform, opacity; }
+@keyframes cf { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 45% { transform: translate(calc(var(--dx) * .8), var(--up)) rotate(calc(var(--rot) * .5)); opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--up) + var(--fall))) rotate(var(--rot)); opacity: 0; } }
+.pop { position: fixed; z-index: 22; pointer-events: none; font: 600 30px var(--f-display); letter-spacing: .06em; color: var(--ink); text-shadow: 0 2px 0 var(--night), 0 0 14px var(--sun); transform: translate(-50%, -50%); animation: pop 1s ease-out forwards; white-space: nowrap; }
 @keyframes pop { 0% { transform: translate(-50%, -20%) scale(.6); opacity: 0; } 20% { transform: translate(-50%, -70%) scale(1.1); opacity: 1; } 100% { transform: translate(-50%, -190%) scale(1); opacity: 0; } }
-.stamp { position: fixed; z-index: 41; left: 50%; top: 38%; transform: translate(-50%, -50%) rotate(-6deg); font: 700 54px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--acc-l); border: 3px solid var(--acc-l); padding: 6px 20px 4px; background: var(--glass); pointer-events: none; animation: stamp 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+.stamp { position: fixed; z-index: 22; left: 50%; top: 38%; transform: translate(-50%, -50%) rotate(-6deg); font: 700 54px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--acc-l); border: 3px solid var(--acc-l); padding: 6px 20px 4px; background: var(--glass); pointer-events: none; animation: stamp 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
 @keyframes stamp { 0% { transform: translate(-50%, -50%) rotate(-6deg) scale(2.6); opacity: 0; } 25% { transform: translate(-50%, -50%) rotate(-6deg) scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(-6deg) scale(1); opacity: 0; } }
 .shake { animation: shake .4s; }
 @keyframes shake { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
@@ -343,7 +345,7 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
   </section>
 
   <div id="toasts"></div>
-  <canvas id="fx"></canvas>
+  <div id="fx" aria-hidden="true"></div>
 
   <div class="modal" id="m-intro" hidden><div class="sheet intro" role="dialog" aria-modal="true" aria-label="Introduction"><svg class="intro-art" viewBox="0 0 240 240" fill="none" stroke="#3f6a8f" stroke-width="1" aria-hidden="true"><circle cx="120" cy="120" r="104"/><circle cx="120" cy="120" r="72" stroke-dasharray="2 5"/><circle cx="120" cy="120" r="38"/><ellipse cx="120" cy="120" rx="104" ry="40"/><ellipse cx="120" cy="120" rx="40" ry="104"/><ellipse cx="120" cy="120" rx="72" ry="104" stroke-opacity=".6"/><line x1="0" y1="120" x2="240" y2="120"/><line x1="120" y1="0" x2="120" y2="240"/><path d="M104 120h-18M136 120h18M120 104v-18M120 136v18" stroke="#d9a441" stroke-width="2"/><circle cx="150" cy="86" r="3.5" fill="#d9a441" stroke="none"/><path d="M150 86l44-34h30" stroke="#d9a441"/></svg><h1 class="quote">«&nbsp;Qui peut citer 3 chinois vivants ici&nbsp;?&nbsp;»</h1><p class="by">demandait Gilles Gressani à LCI.</p><p class="lead">C’est une bonne question que l’on peut étirer afin de tester nos connaissances.</p><ol class="steps"><li><b>01</b><span>Tape le nom d’une personnalité encore vivante.</span></li><li><b>02</b><span>Trois noms complètent un pays.</span></li><li><b>03</b><span>Remplis le plus de pays possible.</span></li></ol><div class="btns"><button class="btn pri" id="intro-go" type="button">Jouer</button></div></div></div>
   <div class="modal" id="m-end" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Score final"><button class="x" type="button" data-close aria-label="Fermer">✕</button><div id="end-body"></div></div></div>
@@ -512,31 +514,19 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   FX.badge = function () { [0, 7, 12, 16, 19, 24].forEach(function (s, i) { tone(392 * Math.pow(2, s / 12), 0.24, 'square', 0.1, i * 0.08); }); buzz([20, 30, 20, 30, 70]); };
   FX.ai = function () { tone(440, 0.08, 'sine', 0.12); tone(660, 0.1, 'sine', 0.12, 0.08); tone(880, 0.14, 'sine', 0.12, 0.16); buzz([10, 20, 10]); };
 
-  var fxc = $('fx'), fxx = fxc.getContext ? fxc.getContext('2d') : null, parts = [], fxr = 0;
-  function sizeCv() { fxc.width = window.innerWidth; fxc.height = window.innerHeight; }
-  window.addEventListener('resize', sizeCv); sizeCv();
-  document.addEventListener('visibilitychange', function () { if (document.hidden) { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); } });
-  var COLS = ['#3f6a8f', '#d9a441', '#2b3440', '#8fb0cc', '#e6c274', '#ffffff'];
+  var fxLayer = $('fx'), COLS = ['#3f6a8f', '#d9a441', '#2b3440', '#8fb0cc', '#e6c274', '#ffffff'];
+  /* Confettis en CSS : chaque morceau s'anime seul puis se retire seul. Pas de boucle d'animation qui puisse se figer. */
   function burst(x, y, n, pow) {
-    if (RM || !fxx) return;
+    if (RM || !fxLayer) return;
+    n = Math.min(n, 34);
     for (var i = 0; i < n; i++) {
-      var a = Math.random() * Math.PI * 2, v = 2 + Math.random() * pow;
-      parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - pow * 0.6, r: 3 + Math.random() * 4, c: COLS[i % COLS.length], rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, life: 55 + Math.random() * 35 });
+      var el = document.createElement('i'), a = Math.random() * Math.PI * 2, v = (40 + Math.random() * 38) * (pow / 6 + 0.6), dur = 0.9 + Math.random() * 0.6;
+      el.className = 'cf';
+      el.style.cssText = 'left:' + x + 'px;top:' + y + 'px;width:' + (5 + Math.random() * 5) + 'px;height:' + (3 + Math.random() * 4) + 'px;background:' + COLS[i % COLS.length] +
+        ';--dx:' + Math.round(Math.cos(a) * v) + 'px;--up:' + Math.round(Math.sin(a) * v * 0.8 - 30) + 'px;--fall:' + Math.round(70 + Math.random() * 90) + 'px;--rot:' + Math.round((Math.random() - 0.5) * 900) + 'deg;animation-duration:' + dur.toFixed(2) + 's';
+      fxLayer.appendChild(el);
+      (function (e) { setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 1800); })(el);
     }
-    if (fxr) cancelAnimationFrame(fxr);
-    fxr = requestAnimationFrame(loop);
-    /* Filet de sécurité : si le navigateur suspend l'animation, rien ne doit rester figé à l'écran. */
-    clearTimeout(burst.t); burst.t = setTimeout(function () { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); }, 3200);
-  }
-  function loop() {
-    fxx.clearRect(0, 0, fxc.width, fxc.height);
-    parts = parts.filter(function (p) { return p.life > 0 && p.y < fxc.height + 20; });
-    parts.forEach(function (p) {
-      p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.vx *= 0.99; p.rot += p.vr; p.life--;
-      fxx.save(); fxx.translate(p.x, p.y); fxx.rotate(p.rot); fxx.fillStyle = p.c; fxx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fxx.restore();
-    });
-    fxr = parts.length ? requestAnimationFrame(loop) : 0;
-    if (!parts.length) fxx.clearRect(0, 0, fxc.width, fxc.height);
   }
   function pop(text, x, y) {
     if (RM) return;
