@@ -1,0 +1,16 @@
+{
+  "name": "cite-3-chinois",
+  "version": "3.0.0",
+  "private": true,
+  "config": { "repo": "amelienito/cite-trois-chinois" },
+  "type": "module",
+  "description": "Cite 3 chinois : cite des célébrités vivantes pays par pays.",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify.mjs",
+    "verify:write": "node scripts/verify.mjs --write",
+    "test": "node scripts/check.mjs && node scripts/build.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

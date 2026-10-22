@@ -1,0 +1,16 @@
+name: Nom refusé à tort / nom à ajouter
+description: Une personnalité vivante n'est pas reconnue par le jeu.
+labels: ["nom-refuse"]
+body:
+  - type: input
+    id: nom
+    attributes: { label: Nom complet, placeholder: "Prénom Nom (ou nom de scène)" }
+    validations: { required: true }
+  - type: input
+    id: pays
+    attributes: { label: Pays (nationalité principale), placeholder: "France" }
+    validations: { required: true }
+  - type: input
+    id: source
+    attributes: { label: Lien Wikipédia ou Wikidata, description: "Obligatoire : c'est notre critère de notoriété." }
+    validations: { required: true }
