@@ -151,27 +151,31 @@
   FX.badge = function () { [0, 7, 12, 16, 19, 24].forEach(function (s, i) { tone(392 * Math.pow(2, s / 12), 0.24, 'square', 0.1, i * 0.08); }); buzz([20, 30, 20, 30, 70]); };
   FX.ai = function () { tone(440, 0.08, 'sine', 0.12); tone(660, 0.1, 'sine', 0.12, 0.08); tone(880, 0.14, 'sine', 0.12, 0.16); buzz([10, 20, 10]); };
 
-  var cv = $('fx'), cx = cv.getContext ? cv.getContext('2d') : null, parts = [], raf = 0;
-  function sizeCv() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  var fxc = $('fx'), fxx = fxc.getContext ? fxc.getContext('2d') : null, parts = [], fxr = 0;
+  function sizeCv() { fxc.width = window.innerWidth; fxc.height = window.innerHeight; }
   window.addEventListener('resize', sizeCv); sizeCv();
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); } });
   var COLS = ['#3f6a8f', '#d9a441', '#2b3440', '#8fb0cc', '#e6c274', '#ffffff'];
   function burst(x, y, n, pow) {
-    if (RM || !cx) return;
+    if (RM || !fxx) return;
     for (var i = 0; i < n; i++) {
       var a = Math.random() * Math.PI * 2, v = 2 + Math.random() * pow;
       parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - pow * 0.6, r: 3 + Math.random() * 4, c: COLS[i % COLS.length], rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, life: 55 + Math.random() * 35 });
     }
-    if (!raf) raf = requestAnimationFrame(loop);
+    if (fxr) cancelAnimationFrame(fxr);
+    fxr = requestAnimationFrame(loop);
+    /* Filet de sécurité : si le navigateur suspend l'animation, rien ne doit rester figé à l'écran. */
+    clearTimeout(burst.t); burst.t = setTimeout(function () { parts = []; fxr = 0; if (fxx) fxx.clearRect(0, 0, fxc.width, fxc.height); }, 3200);
   }
   function loop() {
-    cx.clearRect(0, 0, cv.width, cv.height);
-    parts = parts.filter(function (p) { return p.life > 0 && p.y < cv.height + 20; });
+    fxx.clearRect(0, 0, fxc.width, fxc.height);
+    parts = parts.filter(function (p) { return p.life > 0 && p.y < fxc.height + 20; });
     parts.forEach(function (p) {
       p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.vx *= 0.99; p.rot += p.vr; p.life--;
-      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillStyle = p.c; cx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); cx.restore();
+      fxx.save(); fxx.translate(p.x, p.y); fxx.rotate(p.rot); fxx.fillStyle = p.c; fxx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fxx.restore();
     });
-    raf = parts.length ? requestAnimationFrame(loop) : 0;
-    if (!parts.length) cx.clearRect(0, 0, cv.width, cv.height);
+    fxr = parts.length ? requestAnimationFrame(loop) : 0;
+    if (!parts.length) fxx.clearRect(0, 0, fxc.width, fxc.height);
   }
   function pop(text, x, y) {
     if (RM) return;
