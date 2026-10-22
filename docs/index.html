@@ -219,6 +219,8 @@ label.f { display: block; margin: 12px 0 4px; font-weight: 500; font-size: 11px;
 .mi small { color: var(--dim); font-size: 11px; }
 .mi.on small { color: var(--acc-l); font-weight: 600; }
 .mi + .mi { border-top: 1px solid var(--hair); }
+.note { margin: 0; padding: 0 12px 9px; font-size: 10px; line-height: 1.3; color: var(--dim); }
+.note + .mi { border-top: 1px solid var(--hair); }
 .mi.end { color: var(--acc-l); font-weight: 600; }
 .regbtn { position: absolute; left: 10px; top: 10px; z-index: 3; border: 1px solid var(--ink); background: var(--panel); padding: 6px 12px 5px; font: 600 14px/1 var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
 .regbtn::after { content: " ▾"; }
@@ -294,6 +296,7 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
       <button class="mi" id="b-notebook" type="button">Mon carnet</button>
       <button class="mi" id="b-countries" type="button">Choisir un pays</button>
       <button class="mi" id="b-runner" type="button" aria-pressed="false">Écran de détente <small>off</small></button>
+      <p class="note">J’avais pas les droits pour le vrai Subway Surfers</p>
       <button class="mi" id="b-theme" type="button">Thème <small>auto</small></button>
       <button class="mi" id="b-sound" type="button">Son <small>on</small></button>
       <button class="mi" id="b-claim" type="button">Un nom refusé à tort ?</button>
@@ -854,7 +857,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   function accept(entry, opts) {
     opts = opts || {};
     var key = norm(entry.name);
-    if (entry.dead) return say(esc(entry.name) + ' nous a quittés. Paix à son âme : ici, on cherche des personnes encore en vie.', 'info');
+    if (entry.dead) return say('Cette personne nous a quittés.', 'info');
     if (S.used[key]) return say('Déjà cité : ' + entry.name + '.', 'info');
     var target = chooseTarget(entry, S.sel);
     if (!target) {
@@ -1030,7 +1033,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     say('<span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…', 'info');
     askAI(text).then(function (a) {
       aiBusy = false; $('go-free').disabled = false;
-      if (a.dead) { say(esc(a.dead) + ' nous a quittés. Paix à son âme : ici, on cherche des personnes encore en vie.', 'info'); return; }
+      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
       if (a.ok && blocked(a.name)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
       if (a.ok) {
         var again = lookup(a.name, S.sel);

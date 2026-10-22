@@ -491,7 +491,7 @@
   function accept(entry, opts) {
     opts = opts || {};
     var key = norm(entry.name);
-    if (entry.dead) return say(esc(entry.name) + ' nous a quittés. Paix à son âme : ici, on cherche des personnes encore en vie.', 'info');
+    if (entry.dead) return say('Cette personne nous a quittés.', 'info');
     if (S.used[key]) return say('Déjà cité : ' + entry.name + '.', 'info');
     var target = chooseTarget(entry, S.sel);
     if (!target) {
@@ -667,7 +667,7 @@
     say('<span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…', 'info');
     askAI(text).then(function (a) {
       aiBusy = false; $('go-free').disabled = false;
-      if (a.dead) { say(esc(a.dead) + ' nous a quittés. Paix à son âme : ici, on cherche des personnes encore en vie.', 'info'); return; }
+      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
       if (a.ok && blocked(a.name)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
       if (a.ok) {
         var again = lookup(a.name, S.sel);
