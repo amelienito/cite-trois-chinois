@@ -578,7 +578,7 @@
       'ok=true seulement si TOUTES ces conditions sont vraies : personne réelle ; en vie à ta connaissance ; assez célèbre pour avoir une page Wikipédia et être reconnue du grand public dans son pays ; tu es sûr de son identité. Sinon ok=false. Rejette les proches de célébrités, inconnus, personnages fictifs, groupes, animaux, marques.\n' +
       'cc = 1 ou 2 codes ISO 3166-1 alpha-2 (le pays principal en premier). Pour le Kosovo utilise XK.';
   }
-  function askAI(text) {
+  function askSample(text) {
     return getSample().then(function (sample) {
       if (!sample) return { err: 'unavailable' };
       return sample.json(aiPrompt(text), { modelTier: 'quick' }).then(function (r) {
@@ -591,6 +591,64 @@
         var code = e && e.code;
         if (code === 'not_granted') aiOff = true;
         return { err: code || 'error' };
+      });
+    });
+  }
+
+  /* ---------- Recherche en ligne dans Wikidata (aucun nom ne doit être refusé à tort) ---------- */
+  var WD = 'https://www.wikidata.org/w/api.php?format=json&origin=*&';
+  function wdGet(qs) {
+    var ctl = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ctl) ctl.abort(); }, 7000);
+    return fetch(WD + qs, ctl ? { signal: ctl.signal } : {}).then(function (r) { clearTimeout(to); if (!r.ok) throw new Error('http'); return r.json(); });
+  }
+  function claimIds(ent, prop, noEnded) {
+    var out = ((ent.claims || {})[prop] || []).filter(function (c) { return c.mainsnak && c.mainsnak.datavalue && (!noEnded || !(c.qualifiers && c.qualifiers.P582)); });
+    return out.map(function (c) { return c.mainsnak.datavalue.value; });
+  }
+  function askWiki(text) {
+    var q = encodeURIComponent(text.slice(0, 80)), want = norm(text).replace(/ /g, '');
+    return wdGet('action=wbsearchentities&type=item&language=fr&uselang=fr&limit=8&search=' + q).then(function (res) {
+      var ids = (res.search || []).map(function (x) { return x.id; });
+      if (!ids.length) return { no: true };
+      return wdGet('action=wbgetentities&props=labels|aliases|descriptions|claims|sitelinks&languages=fr|en&ids=' + ids.join('|')).then(function (d) {
+        var ents = d.entities || {}, best = null, dead = null;
+        ids.forEach(function (id) {
+          var e = ents[id]; if (!e || best) return;
+          var inst = claimIds(e, 'P31').map(function (v) { return v.id; });
+          if (inst.indexOf('Q5') < 0) return;
+          var lab = (e.labels.fr || e.labels.en || {}).value || '';
+          var names = [lab, (e.labels.en || {}).value];
+          ((e.aliases && (e.aliases.fr || [])) || []).concat((e.aliases && e.aliases.en) || []).forEach(function (a) { names.push(a.value); });
+          var hit = names.some(function (n) { return n && norm(n).replace(/ /g, '') === want; });
+          if (!hit) return;
+          var links = Object.keys(e.sitelinks || {}).length;
+          if (links < 2) return;
+          if (claimIds(e, 'P570').length) { if (!dead) dead = lab; return; }
+          var by = claimIds(e, 'P569')[0], year = by && by.time ? +by.time.slice(1, 5) : 0;
+          if (year > 2007) return;
+          best = { id: id, e: e, name: lab, year: year, desc: (e.descriptions.fr || e.descriptions.en || {}).value || '' };
+        });
+        if (!best) return dead ? { dead: dead } : { no: true };
+        var cs = claimIds(best.e, 'P27', true).map(function (v) { return v.id; });
+        if (!cs.length) cs = claimIds(best.e, 'P27').map(function (v) { return v.id; });
+        cs = cs.slice(0, 3);
+        if (!cs.length) return { no: true };
+        return wdGet('action=wbgetentities&props=claims&ids=' + cs.join('|')).then(function (cd) {
+          var cc = [];
+          cs.forEach(function (q) { var ce = (cd.entities || {})[q]; if (!ce) return; var iso = claimIds(ce, 'P297')[0]; if (typeof iso === 'string' && NAMES[iso] && cc.indexOf(iso) < 0) cc.push(iso); });
+          if (!cc.length) return { no: true };
+          var job = best.desc ? best.desc.charAt(0).toUpperCase() + best.desc.slice(1, 60) : '';
+          return { ok: true, name: best.name.replace(/\s+/g, ' ').trim(), cc: cc.slice(0, 2), job: job, year: best.year ? String(best.year) : '' };
+        });
+      });
+    }).catch(function () { return { err: 'network' }; });
+  }
+  function askAI(text) {
+    return askSample(text).then(function (a) {
+      if (a && a.ok) return a;
+      return askWiki(text).then(function (w) {
+        if (w.ok || w.dead) return w;
+        return (a && a.no) ? a : w;
       });
     });
   }
@@ -616,12 +674,12 @@
       say('Plusieurs personnes portent ce nom. Laquelle ?', 'info', '<div class="suggest">' + r.ambig.map(function (e) { return '<button type="button" data-name="' + esc(e.name) + '">' + esc(e.name) + '</button>'; }).join('') + '</div>');
       return;
     }
-    if (aiOff) { miss('« ' + esc(text) + ' » n’est pas dans la base, et la vérification automatique est désactivée.', text); return; }
     if (aiBusy) return;
     aiBusy = true; $('go-free').disabled = true;
     say('<span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…', 'info');
     askAI(text).then(function (a) {
       aiBusy = false; $('go-free').disabled = false;
+      if (a.dead) { say(esc(a.dead) + ' nous a quittés. Paix à son âme : ici, on cherche des personnes encore en vie.', 'info'); return; }
       if (a.ok && blocked(a.name)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
       if (a.ok) {
         var again = lookup(a.name, S.sel);
