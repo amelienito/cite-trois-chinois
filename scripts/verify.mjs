@@ -6,6 +6,7 @@
 //   node scripts/verify.mjs --write              # met à jour data/people.csv (statut, identifiant Wikidata)
 //   node scripts/verify.mjs --since origin/main  # seulement les lignes ajoutées ou modifiées depuis cette révision
 //   node scripts/verify.mjs --status unverified  # seulement un statut donné (unverified, review, verified)
+//   node scripts/verify.mjs --untried --limit 2500 # seulement les lignes jamais vérifiées, par paquets
 //   node scripts/verify.mjs --only "Booba"       # un seul nom
 //   node scripts/verify.mjs --strict             # code de sortie 1 si une ligne n'est pas « verified »
 //   options : --min-sitelinks 8  --concurrency 4  --limit 100  --file people|history
@@ -129,6 +130,7 @@ async function main() {
     todo = todo.filter(({ r }) => !oldKeys.has(key(r)));
   }
   const st = opt('status', null); if (st && st !== true) todo = todo.filter(({ r }) => r.status === st);
+  if (opt('untried', false) === true) todo = todo.filter(({ r }) => r.status === 'unverified' && !r.note); // jamais encore vérifiées
   const only = opt('only', null); if (only && only !== true) todo = todo.filter(({ r }) => norm(r.name) === norm(only));
   if (LIMIT) todo = todo.slice(0, LIMIT);
   console.log(`Vérification de ${todo.length} ligne(s) sur ${rows.length} (${path.basename(file)}), seuil ${MIN_LINKS} pages…`);
