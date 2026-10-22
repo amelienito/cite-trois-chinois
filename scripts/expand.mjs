@@ -68,6 +68,10 @@ dead.forEach(r => { known.add(norm(r.name)); (r.aliases || '').split(';').forEac
 // Une étiquette qui n'est qu'un identifiant (« Q123 ») ou vide n'est pas un nom.
 const usable = n => n && !/^Q\d+$/.test(n) && n.length >= 3 && n.length <= 60 && norm(n).length >= 3;
 
+// « footballeur ou footballeuse » -> « Footballeur » (on garde la forme courte).
+const flat = x => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const pre = (a, b) => { let n = 0; while (n < a.length && flat(a)[n] === flat(b)[n]) n++; return n; };
+const shortJob = j => { j = j.replace(/([^\s,]+) ou ([^\s,]+)/g, (m, a, b) => pre(a, b) >= 3 ? a : m); return j.charAt(0).toUpperCase() + j.slice(1); };
 const found = new Map(); // wikidata -> { name, countries:Set, job, year, links }
 function take(b, iso) {
   const id = qid(val(b, 'p')), name = val(b, 'pLabel').trim();
@@ -75,7 +79,7 @@ function take(b, iso) {
   const yy = /^(\d{4})/.exec(val(b, 'dob')); if (yy && +yy[1] > 2007) return; // pas de mineurs
   const e = found.get(id) || { name, countries: new Set(), job: '', year: '', links: 0, followers: 0 };
   e.countries.add(iso || val(b, 'iso'));
-  e.job = e.job || (val(b, 'occ').split(', ').filter(Boolean).slice(0, 2).join(' et ') || '');
+  e.job = e.job || shortJob(val(b, 'occ').split(', ').filter(Boolean).slice(0, 2).join(' et ') || '');
   const y = /^(\d{4})/.exec(val(b, 'dob')); e.year = e.year || (y && +y[1] >= 1900 && +y[1] <= 2015 ? y[1] : '');
   e.links = Math.max(e.links, +val(b, 'links') || 0); e.followers = Math.max(e.followers, +val(b, 'followers') || 0);
   found.set(id, e);
