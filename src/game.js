@@ -565,7 +565,7 @@
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
     S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
-    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
+    say(text, 'no', '' + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
   }
 
   /* ---------- Vérification automatique (Claude) ---------- */
@@ -667,33 +667,7 @@
   }
   learned.forEach(function (r) { addEntry({ name: r.name, cc: r.cc, tier: 'r', job: r.job, year: r.year, ai: true }); });
 
-  /* ---------- Indices : aider sans gâcher (piste, initiales, puis nom) ---------- */
-  var HT = { e: null, t: null, level: 0 }, missRun = 0;
-  var HINT_BTN = '<button type="button" class="link" data-hint="1">Un indice ?</button>', BOOST_BTN = '<button type="button" class="link" data-boost="1">Débloquer 10 noms</button>';
-  function pickHint() {
-    var open = Object.keys(NAMES).filter(function (c) { return cs(c).n < 3; }), t = null;
-    if (S.sel && cs(S.sel).n < 3) t = S.sel;
-    if (!t) { var prog = open.filter(function (c) { return cs(c).n > 0; }); if (prog.length) t = prog[Math.floor(Math.random() * prog.length)]; }
-    if (!t) { var big = ['FR', 'US', 'GB', 'DE', 'ES', 'IT', 'BR', 'JP', 'KR', 'NG', 'MA', 'CA', 'MX', 'IN'].filter(function (c) { return open.indexOf(c) >= 0; }); t = big.length ? big[Math.floor(Math.random() * big.length)] : open[Math.floor(Math.random() * open.length)]; }
-    if (!t) return null;
-    var c = ENTRIES.filter(function (e) { return e.cc.indexOf(t) >= 0 && !S.used[norm(e.name)] && !/h/.test(e.tags) && !e.ai && e.job; });
-    if (!c.length) return null;
-    var top = c.filter(function (e) { return e.tier === 's'; }); if (top.length >= 3) c = top;
-    var e = c[Math.floor(Math.random() * c.length)];
-    return { e: e, t: t, level: 0 };
-  }
-  function giveHint(next) {
-    if (mode !== 'free') return;
-    if (!HT.e || S.used[norm(HT.e.name)] || !next) { var h = pickHint(); if (!h) { say('Aucune idée à proposer pour l’instant. Essaie un autre pays ou une autre catégorie.', 'info'); return; } HT = h; }
-    else HT.level = Math.min(HT.level + 1, 2);
-    var e = HT.e, lvl = HT.level, job = (e.job || '').split(' et ')[0].toLowerCase(), dec = e.year ? ', années ' + e.year.slice(0, 3) + '0' : '';
-    var init = e.name.split(/[\s-]+/).filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + '.'; }).join(' ');
-    var txt, extra;
-    if (lvl === 0) { txt = 'Piste · ' + esc(NAMES[HT.t]) + ' : ' + esc(job) + esc(dec) + '.'; extra = '<button type="button" class="link" data-hint="2">Un autre indice</button>'; }
-    else if (lvl === 1) { txt = 'Piste · ' + esc(NAMES[HT.t]) + ' : ' + esc(job) + esc(dec) + '. Initiales : ' + esc(init); extra = '<button type="button" class="link" data-hint="2">Un autre indice</button>'; }
-    else { txt = 'C’est ' + esc(e.name) + '.'; extra = '<button type="button" data-name="' + esc(e.name) + '">Taper ce nom</button>'; }
-    say(txt, 'info', extra);
-  }
+  var missRun = 0, BOOST_BTN = '<button type="button" class="link" data-boost="1">Débloquer 10 noms</button>';
   /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
   var BYCC = null;
   function boost() {
@@ -865,14 +839,13 @@
     return out.slice(0, 5);
   }
   function entryById(id) { for (var i = 0; i < ENTRIES.length; i++) if (ENTRIES[i].id === id) return ENTRIES[i]; return null; }
-  var NCLUE = 5;
+  var NCLUE = 4;
   function clueOf(e, lvl) {
     var cc = e.cc[0], dec = Math.floor(parseInt(e.year, 10) / 10) * 10;
-    if (lvl === 0) return ['Métier', e.job];
+    if (lvl === 0) return ['Pays · Métier', flag(cc) + ' ' + nameOf(cc) + ' · ' + e.job];
     if (lvl === 1 && e.era) return ['Époque', e.era + ' · ' + (CNAMES[CONT[cc]] || '')];
-    if (lvl === 1) return ['Époque', 'Né·e dans les années ' + dec + ' · ' + (CNAMES[CONT[cc]] || '')];
-    if (lvl === 2) return ['Pays', flag(cc) + ' ' + nameOf(cc)];
-    if (lvl === 3) return ['Indice', e.hint];
+    if (lvl === 1) return ['Époque', 'Né·e dans les années ' + dec];
+    if (lvl === 2) return ['Indice', e.hint];
     return ['Initiales', e.name.split(/\s+/).map(function (w) { return w.charAt(0).toUpperCase() + '·'.repeat(Math.max(w.length - 1, 1)).split('').join(' '); }).join('   ')];
   }
   function dailyKey() { return 'c3c3-daily-' + D.seed; }
@@ -896,22 +869,31 @@
     var resolved = D.solved || D.lost;
     $('f-daily').hidden = resolved; $('d-hint').hidden = resolved || D.lvl >= NCLUE - 1; $('d-skip').hidden = resolved;
     $('d-hint').textContent = 'Un indice de plus (−100)';
-    if (!resolved) { $('d-feed').innerHTML = D.msg || '<div class="msg info">Manche ' + (D.i + 1) + '/' + n + ' · ' + (500 - 100 * D.lvl) + ' points en jeu</div>'; }
+    if (!resolved) { $('d-feed').innerHTML = D.msg || '<div class="msg info">Manche ' + (D.i + 1) + '/' + n + ' · ' + (400 - 100 * D.lvl) + ' points en jeu</div>'; }
     else {
       var last = D.rounds[D.rounds.length - 1];
-      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts</div>' : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
+      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + (last.gift ? ' <small style="color:var(--dim)">· aussi débloqué dans les noms libres</small>' : '') + '</div>' : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
     }
   }
   function nextRound() { D.i++; D.lvl = 0; D.solved = false; D.lost = false; D.msg = ''; D.wrong = 0; if (D.i >= D.list.length) D.done = true; saveDaily(); renderDaily(); if (!D.done && matchMedia('(pointer:fine)').matches) $('in-daily').focus(); }
   function dailyReveal(e) { var cc = e.cc[0]; var pt = screenOf(cc); flash(cc); if (pt) { burst(pt.x, pt.y, 40, 7); focusOn(cc); } }
+  /* Une manche réussie souffle un nom au jeu principal : la case est remplie, aux trois quarts des points. */
+  function dailyGift(e) {
+    if (D.practice || e.hist || e.dead) return false;
+    var c = e.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
+    if (!c || S.used[norm(e.name)]) return false;
+    accept(e, { gift: true, force: c });
+    say('Le défi du jour t’a débloqué ' + esc(e.name) + ' (' + esc(nameOf(c)) + ').', 'ok');
+    return true;
+  }
   function resolveRound(ok, e) {
-    var pts = ok ? 500 - 100 * D.lvl : 0;
+    var pts = ok ? 400 - 100 * D.lvl : 0;
     D.rounds.push({ ok: ok, lvl: D.lvl, pts: pts });
     if (ok) { D.solved = true; D.streak++; if (D.lvl === 0 && !D.practice) L.dailyPerfect++; FX.good(D.streak); FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.5, 80, 8); pop('+' + pts, window.innerWidth / 2, window.innerHeight * 0.45); if (e.tags) L.brave++; }
     else { D.lost = true; D.streak = 0; FX.bad(); shake(); }
-    dailyReveal(e); saveDaily(); renderDaily(); checkBadges();
+    dailyReveal(e); if (ok) D.rounds[D.rounds.length - 1].gift = dailyGift(e); saveDaily(); renderDaily(); checkBadges();
   }
   function submitDaily(text) {
     if (D.solved || D.lost || D.done) return;
@@ -966,10 +948,8 @@
     var b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
-    else if (b.hasAttribute('data-hint')) giveHint(b.getAttribute('data-hint') === '2');
     else if (b.hasAttribute('data-boost')) boost();
   });
-  if ($('b-hint')) $('b-hint').onclick = function () { $('menu').hidden = true; giveHint(false); };
   $('b-claim').onclick = function () { openClaim(''); };
   window.__rand = function () {
     var pool = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && c !== S.sel; });
@@ -1121,7 +1101,7 @@
     nudges++; lastAct = Date.now();
     var now = Date.now(), offer = now - lastSubmit >= 45000 && now - lastOffer >= 45000;
     if (offer) lastOffer = now;
-    say(esc(msg), 'info', HINT_BTN + (offer ? ' ' + BOOST_BTN : ''));
+    say(esc(msg), 'info', offer ? BOOST_BTN : '');
   }, 2000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
