@@ -293,6 +293,7 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
     <nav class="menu" id="menu" hidden>
       <button class="mi" id="b-help" type="button">Règles du jeu</button>
       <button class="mi" id="b-hint" type="button">Un indice ?</button>
+      <button class="mi" id="b-boost" type="button">Coup de pouce <small>10 noms</small></button>
       <button class="mi" id="b-badges" type="button">Succès <small id="badge-n">0/0</small></button>
       <button class="mi" id="b-notebook" type="button">Mon carnet</button>
       <button class="mi" id="b-countries" type="button">Choisir un pays</button>
@@ -707,10 +708,11 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     w = Math.max(w, h * VBW / VBH, VBW / 8); var hh = w * VBH / VBW;
     view = { x: cx - w / 2, y: cy - hh / 2, w: w, h: hh }; clampView(); applyView();
   }
+  function fmtN(n) { return String(Math.round(Math.min(n, 3) * 10) / 10).replace('.', ','); }
   function paint(cc) {
     var el = pathEls[cc]; if (!el) return;
     var n = (st[cc] || {}).n || 0, k = CONT[cc];
-    el.setAttribute('class', (k ? 'k-' + k + ' ' : '') + (n ? 's' + Math.min(n, 3) + ' ' : '') + (S.sel === cc ? 'sel' : ''));
+    el.setAttribute('class', (k ? 'k-' + k + ' ' : '') + (n ? 's' + Math.min(Math.ceil(n), 3) + ' ' : '') + (S.sel === cc ? 'sel' : ''));
   }
   function paintAll() { Object.keys(pathEls).forEach(paint); }
   function flash(cc) {
@@ -765,7 +767,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var p = e.target && e.target.closest ? e.target.closest('path') : null;
     if (!p || !p.getAttribute('data-c') || e.pointerType === 'touch') { tip.hidden = true; return; }
     var cc = p.getAttribute('data-c'), r = $('mapwrap').getBoundingClientRect(), n = (st[cc] || {}).n || 0;
-    tip.textContent = nameOf(cc) + (n ? ' · ' + Math.min(n, 3) + '/3' : '');
+    tip.textContent = nameOf(cc) + (n ? ' · ' + fmtN(n) + '/3' : '');
     tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px'; tip.hidden = false;
   }
   $('z-in').onclick = function () { zoomCenter(1 / 1.5); };
@@ -852,7 +854,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
       if (x.slots === 2) rows.push('<div class="slot on rare">↳ place prise</div>');
     });
     while (rows.length < 3) rows.push('<div class="slot">à trouver</div>');
-    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + Math.min(o.n, 3) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>';
+    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + fmtN(o.n) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>';
     c.hidden = false;
     $('card-x').onclick = function () { S.sel = null; paintAll(); renderCard(); };
   }
@@ -868,7 +870,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var key = norm(entry.name); missRun = 0;
     if (entry.dead) return say('Cette personne nous a quittés.', 'info');
     if (S.used[key]) return say('Déjà cité : ' + entry.name + '.', 'info');
-    var target = chooseTarget(entry, S.sel);
+    var target = opts.force || chooseTarget(entry, S.sel);
     if (!target) {
       var home = entry.cc[0];
       S.used[key] = 1; S.pts += 25; S.names.push({ name: entry.name, cc: home, pts: 25, ai: !!entry.ai, over: true }); L.names++;
@@ -879,8 +881,8 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var o = cs(target), need = entry.tier === 'r' ? 2 : 1, used = Math.min(need, 3 - o.n);
     var rare = need === 2 && used === 2;
     var redirected = !!S.sel && target !== S.sel && entry.cc.indexOf(S.sel) < 0;
-    S.used[key] = 1; S.streak++; if (S.streak > S.best) S.best = S.streak;
-    var mult = multOf(S.streak), tm = tmOf(target), chips = [];
+    S.used[key] = 1; if (!opts.gift) { S.streak++; if (S.streak > S.best) S.best = S.streak; }
+    var mult = opts.gift ? 1 : multOf(S.streak), tm = tmOf(target), chips = [];
     var base = 100 * used, pts = base * mult * tm;
     chips.push({ t: '+' + base + (rare ? ' pépite' : '') });
     if (mult > 1) chips.push({ t: 'série ×' + mult, k: 'big' });
@@ -897,26 +899,32 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     o.n += used; o.names.push({ name: entry.name, rare: rare, slots: used, ai: !!entry.ai });
     var complete = o.n >= 3;
     if (complete) { var cb = 300 * tm; pts += cb; chips.push({ t: '+' + cb + ' pays complet', k: 'big' }); L.comp[target] = 1; }
-    S.last.push(target); if (S.last.length > 3) S.last.shift();
-    if (S.last.length === 3 && S.last[0] !== S.last[1] && S.last[1] !== S.last[2] && S.last[0] !== S.last[2]) { pts += 80; L.trot++; S.last = []; chips.push({ t: '+80 globe-trotter', k: 'green' }); }
+    if (!opts.gift) S.last.push(target); if (S.last.length > 3) S.last.shift();
+    if (!opts.gift && S.last.length === 3 && S.last[0] !== S.last[1] && S.last[1] !== S.last[2] && S.last[0] !== S.last[2]) { pts += 80; L.trot++; S.last = []; chips.push({ t: '+80 globe-trotter', k: 'green' }); }
+    if (opts.gift) pts *= 0.75;
+    /* Origines : les autres pays de la personne reçoivent une demi-case et 50 points. */
+    var halves = [];
+    if (!opts.gift) entry.cc.forEach(function (c) { if (c !== target && cs(c).n < 3) { var h = cs(c); h.n = Math.min(3, h.n + 0.5); h.names.push({ name: entry.name, slots: 0.5, half: true }); pts += 50; halves.push(c); if (h.n >= 3) L.comp[c] = 1; if (CONT[c]) L.touched[CONT[c]] = 1; L.touchedCc[c] = 1; } });
     pts = Math.round(pts); S.pts += pts;
     S.names.push({ name: entry.name, cc: target, pts: pts, ai: !!entry.ai });
     if (/^(rihanna|lionel messi|tex)$/.test(key)) L.seen = 1;
     L.names++; if (rare) L.rare++; if (S.streak > L.best) L.best = S.streak; if (redirected) L.redirects++; if (k) L.touched[k] = 1; L.touchedCc[target] = 1;
     if (opts.ai) { L.ai++; chips.push({ t: 'nom vérifié', k: 'violet' }); }
-    var line = '<span class="flag">' + flag(target) + '</span>' + esc(entry.name) + ' → ' + esc(nameOf(target)) + ' ' + Math.min(o.n, 3) + '/3';
-    if (redirected) line = '<span class="flag">' + flag(target) + '</span>' + esc(entry.name) + ' : le point va côté ' + esc(nameOf(target)) + ' ' + Math.min(o.n, 3) + '/3';
+    if (halves.length) chips.push({ t: halves.map(function (c) { return '+½ ' + nameOf(c); }).join(' · '), k: 'violet' });
+    var line = '<span class="flag">' + flag(target) + '</span>' + esc(entry.name) + ' → ' + esc(nameOf(target)) + ' ' + fmtN(o.n) + '/3';
+    if (redirected) line = '<span class="flag">' + flag(target) + '</span>' + esc(entry.name) + ' : le point va côté ' + esc(nameOf(target)) + ' ' + fmtN(o.n) + '/3';
     if (opts.fuzzy) line += ' <small style="color:var(--dim)">(compris comme « ' + esc(entry.name) + ' »)</small>';
     if (shame) { var QH = ['Le point est valide, le goût est discutable.', 'Point accordé, sourcil levé.']; line += ' <small style="color:var(--dim)">' + QH[S.names.length % QH.length] + '</small>'; }
     chips.unshift({ t: '+' + fmt(pts) + ' pts', k: 'big' });
-    setFeed($('feed'), '<div class="msg ok">' + line + '</div>' + chipsHtml(chips));
+    if (!opts.gift) setFeed($('feed'), '<div class="msg ok">' + line + '</div>' + chipsHtml(chips));
     // effets
     var pt = screenOf(target) || mid();
-    FX.good(S.streak); burst(pt.x, pt.y, 22 + mult * 8, 6); pop('+' + fmt(pts), pt.x, pt.y);
+    if (!opts.gift) { FX.good(S.streak); burst(pt.x, pt.y, 22 + mult * 8, 6); pop('+' + fmt(pts), pt.x, pt.y); }
+    halves.forEach(function (c) { paint(c); flash(c); });
     flash(target); paint(target); bump('pl-pts'); bump('pl-streak'); if (newC) bump('pl-countries'); bump('pl-names');
-    if (complete) { FX.big(); burst(pt.x, pt.y, 90, 9); stampText('COMPLET'); buzz([30, 40, 30, 40, 90]); }
-    if (mult >= 3 && !complete) pop('SÉRIE ×' + mult + ' !', window.innerWidth / 2, window.innerHeight * 0.38);
-    if (S.sel) { renderCard(); } else if (!RM && pathEls[target]) focusOn(target);
+    if (complete && !opts.gift) { FX.big(); burst(pt.x, pt.y, 90, 9); stampText('COMPLET'); buzz([30, 40, 30, 40, 90]); }
+    if (!opts.gift && mult >= 3 && !complete) pop('SÉRIE ×' + mult + ' !', window.innerWidth / 2, window.innerHeight * 0.38);
+    if (S.sel) { renderCard(); } else if (!opts.gift && !RM && pathEls[target]) focusOn(target);
     renderPills(); persist(); checkBadges();
   }
   function say(text, cls, extra) {
@@ -925,7 +933,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
     S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
-    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
+    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + (missRun >= 3 ? BOOST_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
   }
 
   /* ---------- Vérification automatique (Claude) ---------- */
@@ -1029,7 +1037,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
 
   /* ---------- Indices : aider sans gâcher (piste, initiales, puis nom) ---------- */
   var HT = { e: null, t: null, level: 0 }, missRun = 0;
-  var HINT_BTN = '<button type="button" class="link" data-hint="1">Un indice ?</button>';
+  var HINT_BTN = '<button type="button" class="link" data-hint="1">Un indice ?</button>', BOOST_BTN = '<button type="button" class="link" data-boost="1">Débloquer 10 noms</button>';
   function pickHint() {
     var open = Object.keys(NAMES).filter(function (c) { return cs(c).n < 3; }), t = null;
     if (S.sel && cs(S.sel).n < 3) t = S.sel;
@@ -1053,6 +1061,28 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     else if (lvl === 1) { txt = 'Piste · ' + esc(NAMES[HT.t]) + ' : ' + esc(job) + esc(dec) + '. Initiales : ' + esc(init); extra = '<button type="button" class="link" data-hint="2">Un autre indice</button>'; }
     else { txt = 'C’est ' + esc(e.name) + '.'; extra = '<button type="button" data-name="' + esc(e.name) + '">Taper ce nom</button>'; }
     say(txt, 'info', extra);
+  }
+  /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
+  var BYCC = null;
+  function boost() {
+    if (mode !== 'free') return;
+    if (!BYCC) { BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
+    var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length; });
+    for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
+    var done = [], before = S.pts;
+    open.forEach(function (c) {
+      if (done.length >= 10) return;
+      var pool = (BYCC[c] || []).filter(function (e) { return !S.used[norm(e.name)]; });
+      var top = pool.filter(function (e) { return e.tier === 's'; }); if (top.length) pool = top;
+      if (!pool.length) return;
+      var e = pool[Math.floor(Math.random() * pool.length)];
+      accept(e, { gift: true, force: c }); done.push(e.name + ' (' + nameOf(c) + ')');
+    });
+    if (!done.length) { say('Plus rien à débloquer : tous les pays sont complets.', 'info'); return; }
+    FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.35, 30, 7);
+    showRegion('world'); setRegBtn('world');
+    say('Coup de pouce : ' + done.length + ' noms débloqués, +' + fmt(S.pts - before) + ' pts.', 'ok', '<div class="msg info" style="margin-top:4px">' + esc(done.join(' · ')) + '</div>');
+    renderPills(); persist(); checkBadges();
   }
   function submitFree(text) {
     text = text.replace(/\s+/g, ' ').trim();
@@ -1126,7 +1156,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   function renderCountries() {
     var q = norm($('finder').value || '');
     var list = Object.keys(NAMES).filter(function (c) { return !q || norm(NAMES[c]).indexOf(q) >= 0; }).sort(function (a, b) { return NAMES[a].localeCompare(NAMES[b], 'fr'); });
-    $('clist').innerHTML = list.map(function (c) { var n = Math.min((st[c] || {}).n || 0, 3); return '<button type="button" class="cbtn' + (n ? ' s' + n : '') + '" data-c="' + c + '"><span>' + flag(c) + ' ' + esc(NAMES[c]) + '</span><em>' + n + '/3</em></button>'; }).join('') || '<p style="color:var(--dim)">Aucun pays.</p>';
+    $('clist').innerHTML = list.map(function (c) { var n = Math.min((st[c] || {}).n || 0, 3); return '<button type="button" class="cbtn' + (n ? ' s' + Math.ceil(n) : '') + '" data-c="' + c + '"><span>' + flag(c) + ' ' + esc(NAMES[c]) + '</span><em>' + fmtN(n) + '/3</em></button>'; }).join('') || '<p style="color:var(--dim)">Aucun pays.</p>';
   }
   $('finder').addEventListener('input', renderCountries);
   $('clist').addEventListener('click', function (e) {
@@ -1305,7 +1335,9 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
     else if (b.hasAttribute('data-hint')) giveHint(b.getAttribute('data-hint') === '2');
+    else if (b.hasAttribute('data-boost')) boost();
   });
+  if ($('b-boost')) $('b-boost').onclick = function () { $('menu').hidden = true; boost(); };
   if ($('b-hint')) $('b-hint').onclick = function () { $('menu').hidden = true; giveHint(false); };
   $('b-claim').onclick = function () { openClaim(''); };
   window.__rand = function () {
@@ -1456,7 +1488,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var n = (typeof S !== 'undefined' && S.names) ? S.names.length : 0, msg;
     msg = n ? nextTalk(TALK1, 1) : nextTalk(TALK0, 0);
     nudges++; lastAct = Date.now();
-    say(esc(msg), 'info', HINT_BTN);
+    say(esc(msg), 'info', HINT_BTN + ' ' + BOOST_BTN);
   }, 2000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
