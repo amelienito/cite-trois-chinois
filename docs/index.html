@@ -114,6 +114,22 @@ button { cursor: pointer; }
 .chip.green { border-color: var(--ink); color: var(--ink); }
 .chip.violet { border-color: var(--acc); color: var(--acc-l); }
 @keyframes chip { from { transform: translateY(6px); opacity: 0; } }
+.boost { margin-top: 6px; padding: 6px 14px; background: transparent; border: 1px solid var(--acc); color: var(--acc-l); font: inherit; font-size: 12px; font-weight: 500; letter-spacing: .03em; cursor: pointer; animation: chip .35s ease-out backwards; }
+.boost:hover { background: var(--acc); color: var(--on-acc, #fff); }
+.reveal { margin-top: 8px; border: 1px solid var(--line); background: var(--deep); }
+.reveal-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.reveal-h b { font-weight: 500; font-size: 13px; }
+.reveal-h span { font-size: 11px; letter-spacing: .04em; color: var(--dim); }
+.reveal ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
+.reveal li { animation: chip .4s ease-out backwards; }
+.reveal li + li { border-top: 1px solid var(--line); }
+.reveal li > button, .reveal li > .row { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 7px 12px; background: none; border: 0; color: var(--ink); font: inherit; text-align: left; }
+.reveal li > button { cursor: pointer; }
+.reveal li > button:hover { background: var(--line); }
+.reveal .flag { font-size: 18px; vertical-align: -2px; }
+.reveal li b { font-weight: 500; font-size: 14px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.reveal li small { font-size: 11px; color: var(--dim); white-space: nowrap; }
+
 .row { display: flex; gap: 8px; }
 .row input[type=text], .row input:not([type]) { flex: 1; min-width: 0; height: 48px; border: 1px solid var(--line); border-left: 3px solid var(--acc); background: var(--deep); padding: 0 14px; font-size: 16px; font-weight: 500; border-radius: 0; }
 .row input::placeholder { color: var(--ph); }
@@ -152,6 +168,7 @@ button { cursor: pointer; }
 .sheet .x:hover { border-color: var(--acc-l); }
 .score { font: 600 64px/1 var(--f-display); color: var(--acc-l); margin: 10px 0 2px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .endstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0; }
+.dstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
 .stat { background: var(--night); border: 1px solid var(--line); padding: 8px; text-align: center; }
 .stat b { display: block; font: 600 22px var(--f-display); } .stat small { color: var(--dim); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
 .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
@@ -931,7 +948,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
     S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
-    say(text, 'no', '' + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
+    say(text, 'no', '' + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>' + (missRun >= 2 ? BOOST_BTN : ''));
   }
 
   /* ---------- Vérification automatique (Claude) ---------- */
@@ -1033,27 +1050,41 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   }
   learned.forEach(function (r) { addEntry({ name: r.name, cc: r.cc, tier: 'r', job: r.job, year: r.year, ai: true }); });
 
-  var missRun = 0, BOOST_BTN = '<button type="button" class="link" data-boost="1">Débloquer 10 noms</button>';
+  var missRun = 0, BOOST_BTN = '<button type="button" class="boost" data-boost="1">Débloquer 10 noms</button>';
   /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
   var BYCC = null;
-  function boost() {
-    if (mode !== 'free') return;
+  /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
+  function unlock(n) {
     if (!BYCC) { BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length; });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
     open.forEach(function (c) {
-      if (done.length >= 10) return;
+      if (done.length >= n) return;
       var pool = (BYCC[c] || []).filter(function (e) { return !S.used[norm(e.name)]; });
       var top = pool.filter(function (e) { return e.tier === 's'; }); if (top.length) pool = top;
       if (!pool.length) return;
       var e = pool[Math.floor(Math.random() * pool.length)];
-      accept(e, { gift: true, force: c }); done.push(e.name + ' (' + nameOf(c) + ')');
+      accept(e, { gift: true, force: c }); done.push({ name: e.name, cc: c });
     });
+    done.pts = S.pts - before;
+    return done;
+  }
+  /* Les noms débloqués, présentés en liste : drapeau, nom, pays. Un toucher sur une ligne montre le pays sur la carte. */
+  function revealHtml(title, items, pts, plain) {
+    return '<div class="reveal"><div class="reveal-h"><b>' + esc(title) + '</b><span>' + items.length + ' nom' + (items.length > 1 ? 's' : '') + (pts ? ' · +' + fmt(pts) + ' pts' : '') + '</span></div><ul>' +
+      items.map(function (it, i) { return '<li style="animation-delay:' + (RM ? 0 : 90 + i * 110) + 'ms">' + (plain ? '<div class="row">' : '<button type="button" data-cc="' + esc(it.cc) + '">') + '<span class="flag">' + flag(it.cc) + '</span><b>' + esc(it.name) + '</b><small>' + esc(nameOf(it.cc)) + '</small>' + (plain ? '</div>' : '</button>') + '</li>'; }).join('') + '</ul></div>';
+  }
+  function lightUp(items) { if (RM) return; items.forEach(function (it, i) { setTimeout(function () { flash(it.cc); }, 120 + i * 110); }); }
+  function boost() {
+    if (mode !== 'free') return;
+    var done = unlock(10);
     if (!done.length) { say('Plus rien à débloquer : tous les pays sont complets.', 'info'); return; }
     FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.35, 30, 7);
     showRegion('world'); setRegBtn('world');
-    say('Coup de pouce : ' + done.length + ' noms débloqués, +' + fmt(S.pts - before) + ' pts.', 'ok', '<div class="msg info" style="margin-top:4px">' + esc(done.join(' · ')) + '</div>');
+    say('Coup de pouce', 'ok', revealHtml('Débloqués pour toi', done, done.pts));
+    lightUp(done);
+    lastSubmit = Date.now(); lastOffer = Date.now();
     renderPills(); persist(); checkBadges();
   }
   function submitFree(text) {
@@ -1238,7 +1269,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (!resolved) { $('d-feed').innerHTML = D.msg || '<div class="msg info">Manche ' + (D.i + 1) + '/' + n + ' · ' + (400 - 100 * D.lvl) + ' points en jeu</div>'; }
     else {
       var last = D.rounds[D.rounds.length - 1];
-      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + (last.gift ? ' <small style="color:var(--dim)">· aussi débloqué dans les noms libres</small>' : '') + '</div>' : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
+      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
     }
@@ -1251,8 +1282,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var c = e.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
     if (!c || S.used[norm(e.name)]) return false;
     accept(e, { gift: true, force: c });
-    say('Le défi du jour t’a débloqué ' + esc(e.name) + ' (' + esc(nameOf(c)) + ').', 'ok');
-    return true;
+    return { name: e.name, cc: c };
   }
   function resolveRound(ok, e) {
     var pts = ok ? 400 - 100 * D.lvl : 0;
@@ -1285,10 +1315,13 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   }
   function endDaily() {
     var tot = D.rounds.reduce(function (a, r) { return a + r.pts; }, 0), wins = D.rounds.filter(function (r) { return r.ok; }).length;
+    // le coffre du jour : deux noms de plus dans les noms libres par bonne réponse (dix au plus), une seule fois
+    if (!D.practice && wins > 0 && !D.coffre) { D.coffre = unlock(Math.min(10, wins * 2)); D.coffrePts = D.coffre.pts || 0; saveDaily(); renderPills(); persist(); checkBadges(); }
     if (!D.practice && L.days.indexOf(D.seed) < 0) { L.days.push(D.seed); if (wins >= 3) L.dailyWins++; saveJSON('c3c3-life', L); checkBadges(); }
     $('end-body').innerHTML = '<h2>' + (wins === 5 ? 'Sans faute.' : wins >= 3 ? 'Bien joué.' : 'Une autre fois !') + '</h2><div class="score">' + fmt(tot) + '</div><div style="color:var(--dim)">sur 2 500 points</div>' +
       '<pre class="share" id="dshare">' + esc(dailyShare()) + '</pre>' +
-      '<div class="stats">' + D.list.map(function (id, i) { var e = entryById(id), r = D.rounds[i]; return '<div class="stat"><b>' + (e ? flag(e.cc[0]) : '') + '</b><small>' + (e ? esc(e.name) : '') + '</small></div>'; }).slice(0, 3).join('') + '</div>' +
+      '<div class="dstats">' + D.list.map(function (id, i) { var e = entryById(id), r = D.rounds[i]; return '<div class="stat"><b>' + (e ? flag(e.cc[0]) : '') + '</b><small>' + (e ? esc(e.name) : '') + '</small></div>'; }).slice(0, 3).join('') + '</div>' +
+      (D.coffre && D.coffre.length ? revealHtml('Débloqués dans les noms libres', D.coffre, D.coffrePts, true) : '') +
       '<div class="btns"><button class="btn pri" id="d-share" type="button">Copier / partager</button><button class="btn" id="d-more" type="button">Encore un défi</button><button class="btn" id="d-back" type="button">Noms libres</button></div>';
     open('m-end');
     $('d-share').onclick = function () { shareOut(dailyShare(), $('d-share')); };
@@ -1315,6 +1348,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
     else if (b.hasAttribute('data-boost')) boost();
+    else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
   $('b-claim').onclick = function () { openClaim(''); };
   window.__rand = function () {
@@ -1460,12 +1494,12 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     u.push(i); return list[i];
   }
   setInterval(function () {
-    if (mode !== 'free' || document.hidden || Date.now() - lastAct < (nudges ? 25000 : 20000)) return;
+    if (mode !== 'free' || document.hidden || Date.now() - lastAct < (nudges ? 14000 : 10000)) return;
     if (document.querySelector('.modal:not([hidden])') || !$('menu').hidden || $('in-free').value) return;
     var n = (typeof S !== 'undefined' && S.names) ? S.names.length : 0, msg;
     msg = n ? nextTalk(TALK1, 1) : nextTalk(TALK0, 0);
     nudges++; lastAct = Date.now();
-    var now = Date.now(), offer = now - lastSubmit >= 45000 && now - lastOffer >= 45000;
+    var now = Date.now(), offer = now - lastSubmit >= 10000 && now - lastOffer >= 18000;
     if (offer) lastOffer = now;
     say(esc(msg), 'info', offer ? BOOST_BTN : '');
   }, 2000);
