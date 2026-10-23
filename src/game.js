@@ -222,11 +222,19 @@
     var col = locked ? 'var(--lock)' : b.c, dk = !locked && (col === '#3f6a8f' || col === '#2b3440'), gl = locked ? 'var(--lockg)' : (dk ? '#fff' : '#2b3440');
     return '<svg viewBox="0 0 48 48" width="' + (size || 48) + '" height="' + (size || 48) + '" aria-hidden="true"><polygon points="24,2 43,13 43,35 24,46 5,35 5,13" style="fill:' + col + ';stroke:var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><g transform="translate(12 12)" fill="none" style="stroke:' + gl + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + (locked ? GL.lock : GL[b.g]) + '"/></g></svg>';
   }
-  function toast(b) {
-    var t = document.createElement('div'); t.className = 'toast';
-    t.innerHTML = patch(b, false, 52) + '<div><small>Badge débloqué</small><b>' + esc(b.n) + '</b><span>' + esc(b.d) + '</span></div>';
-    $('toasts').appendChild(t);
-    setTimeout(function () { t.classList.add('out'); setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 400); }, 4200);
+  /* Les succès passent un par un, avec un court silence entre deux : jamais deux à l'écran en même temps. */
+  var toastQ = [], toastBusy = false;
+  function toast(b) { toastQ.push(b); pumpToast(); }
+  function pumpToast() {
+    if (toastBusy || !toastQ.length) return;
+    toastBusy = true;
+    var b = toastQ.shift(), t = document.createElement('div'); t.className = 'toast';
+    t.innerHTML = patch(b, false, 44) + '<div><small>Badge débloqué</small><b>' + esc(b.n) + '</b><span>' + esc(b.d) + '</span></div>';
+    $('toasts').appendChild(t); FX.badge(); burst(window.innerWidth / 2, 96, 18, 5);
+    setTimeout(function () {
+      t.classList.add('out');
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); toastBusy = false; setTimeout(pumpToast, 350); }, 450);
+    }, toastQ.length ? 2600 : 3800);
   }
   function checkBadges() {
     var got = [];
@@ -234,7 +242,7 @@
     saveJSON('c3c3-life', L);
     if (got.length) {
       saveJSON('c3c3-badges', OWN);
-      got.forEach(function (b, i) { setTimeout(function () { toast(b); FX.badge(); if (i === 0) burst(window.innerWidth / 2, 110, 26, 6); }, i * 900); });
+      got.forEach(function (b) { toast(b); });
     }
     $('badge-n').textContent = Object.keys(OWN).length + '/' + shown().length;
   }
@@ -490,7 +498,7 @@
   }
   function accept(entry, opts) {
     opts = opts || {};
-    var key = norm(entry.name);
+    var key = norm(entry.name); missRun = 0;
     if (entry.dead) return say('Cette personne nous a quittés.', 'info');
     if (S.used[key]) return say('Déjà cité : ' + entry.name + '.', 'info');
     var target = chooseTarget(entry, S.sel);
@@ -498,7 +506,7 @@
       var home = entry.cc[0];
       S.used[key] = 1; S.pts += 25; S.names.push({ name: entry.name, cc: home, pts: 25, ai: !!entry.ai, over: true }); L.names++;
       var pt0 = screenOf(home) || mid(); FX.tap(); pop('+25', pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
-      say('<span class="flag">' + flag(home) + '</span>' + esc(entry.name) + ' est bien de ' + esc(nameOf(home)) + ', déjà complet : +25 de rab.', 'ok', opts.ai ? chipsHtml([{ t: 'nom vérifié', k: 'violet' }]) : '');
+      say('<span class="flag">' + flag(home) + '</span>' + esc(entry.name) + ' (' + esc(nameOf(home)) + ') : pays déjà complet, +25 de rab.', 'ok', opts.ai ? chipsHtml([{ t: 'nom vérifié', k: 'violet' }]) : '');
       renderPills(); persist(); checkBadges(); return;
     }
     var o = cs(target), need = entry.tier === 'r' ? 2 : 1, used = Math.min(need, 3 - o.n);
@@ -549,8 +557,8 @@
   }
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
-    S.streak = 0; FX.bad(); shake(); renderPills(); persist();
-    say(text, 'no', '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
+    S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
+    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
   }
 
   /* ---------- Vérification automatique (Claude) ---------- */
@@ -652,6 +660,33 @@
   }
   learned.forEach(function (r) { addEntry({ name: r.name, cc: r.cc, tier: 'r', job: r.job, year: r.year, ai: true }); });
 
+  /* ---------- Indices : aider sans gâcher (piste, initiales, puis nom) ---------- */
+  var HT = { e: null, t: null, level: 0 }, missRun = 0;
+  var HINT_BTN = '<button type="button" class="link" data-hint="1">Un indice ?</button>';
+  function pickHint() {
+    var open = Object.keys(NAMES).filter(function (c) { return cs(c).n < 3; }), t = null;
+    if (S.sel && cs(S.sel).n < 3) t = S.sel;
+    if (!t) { var prog = open.filter(function (c) { return cs(c).n > 0; }); if (prog.length) t = prog[Math.floor(Math.random() * prog.length)]; }
+    if (!t) { var big = ['FR', 'US', 'GB', 'DE', 'ES', 'IT', 'BR', 'JP', 'KR', 'NG', 'MA', 'CA', 'MX', 'IN'].filter(function (c) { return open.indexOf(c) >= 0; }); t = big.length ? big[Math.floor(Math.random() * big.length)] : open[Math.floor(Math.random() * open.length)]; }
+    if (!t) return null;
+    var c = ENTRIES.filter(function (e) { return e.cc.indexOf(t) >= 0 && !S.used[norm(e.name)] && !/h/.test(e.tags) && !e.ai && e.job; });
+    if (!c.length) return null;
+    var top = c.filter(function (e) { return e.tier === 's'; }); if (top.length >= 3) c = top;
+    var e = c[Math.floor(Math.random() * c.length)];
+    return { e: e, t: t, level: 0 };
+  }
+  function giveHint(next) {
+    if (mode !== 'free') return;
+    if (!HT.e || S.used[norm(HT.e.name)] || !next) { var h = pickHint(); if (!h) { say('Aucune idée à proposer pour l’instant. Essaie un autre pays ou une autre catégorie.', 'info'); return; } HT = h; }
+    else HT.level = Math.min(HT.level + 1, 2);
+    var e = HT.e, lvl = HT.level, job = (e.job || '').split(' et ')[0].toLowerCase(), dec = e.year ? ', années ' + e.year.slice(0, 3) + '0' : '';
+    var init = e.name.split(/[\s-]+/).filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + '.'; }).join(' ');
+    var txt, extra;
+    if (lvl === 0) { txt = 'Piste · ' + esc(NAMES[HT.t]) + ' : ' + esc(job) + esc(dec) + '.'; extra = '<button type="button" class="link" data-hint="2">Un autre indice</button>'; }
+    else if (lvl === 1) { txt = 'Piste · ' + esc(NAMES[HT.t]) + ' : ' + esc(job) + esc(dec) + '. Initiales : ' + esc(init); extra = '<button type="button" class="link" data-hint="2">Un autre indice</button>'; }
+    else { txt = 'C’est ' + esc(e.name) + '.'; extra = '<button type="button" data-name="' + esc(e.name) + '">Taper ce nom</button>'; }
+    say(txt, 'info', extra);
+  }
   function submitFree(text) {
     text = text.replace(/\s+/g, ' ').trim();
     if (text.length < 2) return;
@@ -902,7 +937,9 @@
     var b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
+    else if (b.hasAttribute('data-hint')) giveHint(b.getAttribute('data-hint') === '2');
   });
+  if ($('b-hint')) $('b-hint').onclick = function () { $('menu').hidden = true; giveHint(false); };
   $('b-claim').onclick = function () { openClaim(''); };
   window.__rand = function () {
     var pool = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && c !== S.sel; });
@@ -1052,7 +1089,7 @@
     var n = (typeof S !== 'undefined' && S.names) ? S.names.length : 0, msg;
     msg = n ? nextTalk(TALK1, 1) : nextTalk(TALK0, 0);
     nudges++; lastAct = Date.now();
-    say(esc(msg), 'info');
+    say(esc(msg), 'info', HINT_BTN);
   }, 2000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
