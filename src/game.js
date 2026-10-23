@@ -126,7 +126,11 @@
   }
 
   /* ---------- Sons, vibrations, confettis ---------- */
-  var FX = { on: loadJSON('c3c3-sound', true) !== false, ctx: null };
+  /* Le son a trois crans : fort, doux, coupé. L'ancien réglage « off » devient « coupé ». */
+  var LEVELS = [{ k: 'fort', v: 1 }, { k: 'doux', v: 0.3 }, { k: 'coupé', v: 0 }];
+  var FX = { lvl: loadJSON('c3c3-sound-level', loadJSON('c3c3-sound', true) === false ? 2 : 0), ctx: null };
+  if (!LEVELS[FX.lvl]) FX.lvl = 0;
+  FX.on = LEVELS[FX.lvl].v > 0; FX.vol = LEVELS[FX.lvl].v;
   function audio() {
     if (!FX.ctx) { try { FX.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { FX.ctx = null; } }
     if (FX.ctx && FX.ctx.state === 'suspended') { try { FX.ctx.resume(); } catch (e) {} }
@@ -138,7 +142,7 @@
     try {
       var t = c.currentTime + (delay || 0), o = c.createOscillator(), g = c.createGain();
       o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.18, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, (vol || 0.18) * FX.vol), t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
       o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + 0.03);
     } catch (e) {}
   }
@@ -206,8 +210,13 @@
     { id: 'cont', n: 'Continent bouclé', d: 'Complète tous les pays d’un continent de la base.', g: 'mountain', c: '#2b3440', t: contDone },
     { id: 'pass', n: 'Passeport tamponné', d: 'Complète 10 pays.', g: 'stamp', c: '#3f6a8f', t: function () { return Object.keys(L.comp).length >= 10; } },
     { id: 'wide', n: 'Cartographe', d: 'Cite quelqu’un dans 25 pays différents.', g: 'globe', c: '#e6c274', t: function () { return Object.keys(L.touchedCc).length >= 25; } },
-    { id: 'brave', n: 'Engagé·e', d: 'Cite 5 figures de courage ou d’engagement.', g: 'fist', c: '#e6c274', t: function () { return L.brave >= 5; } },
-    { id: 'ai', n: 'Expert contesté', d: 'Un nom absent de la base est confirmé par la vérification automatique.', g: 'spark', c: '#8fb0cc', t: function () { return L.ai >= 1; } },
+    { id: 'c6', n: 'Bravo', d: 'Remplis 6 pays.', g: 'flag', c: '#8fb0cc', t: function () { return Object.keys(L.comp).length >= 6; } },
+    { id: 'c12', n: 'Félicitations', d: 'Remplis 12 pays.', g: 'crown', c: '#3f6a8f', t: function () { return Object.keys(L.comp).length >= 12; } },
+    { id: 'c16', n: 'BG', d: 'Remplis 16 pays.', g: 'diamond', c: '#d9a441', t: function () { return Object.keys(L.comp).length >= 16; } },
+    { id: 'c25', n: 'Wow', d: 'Remplis 25 pays.', g: 'globe', c: '#e6c274', t: function () { return Object.keys(L.comp).length >= 25; } },
+    { id: 'fear', n: 'Peur de rien', d: 'Enchaîne 3 points de la honte d’affilée.', g: 'bolt', c: '#2b3440', t: function () { return !!L.fear; } },
+    { id: 'pnl', secret: true, n: '', d: '', x: ['Qm9udXMgUE5M', 'Vm91cyBhdmV6IHRhcMOpIFBOTCwgbcOqbWUgc2kgY+KAmWVzdCB1biBncm91cGUu'], g: 'spark', c: '#e6c274', t: function () { return !!L.pnl; } },
+    { id: 'ai', n: 'Expertise incontestée', d: 'Un nom absent de la base est confirmé par la vérification automatique.', g: 'spark', c: '#8fb0cc', t: function () { return L.ai >= 1; } },
     { id: 'daily', n: 'Fidèle au poste', d: 'Joue 3 jours différents au Défi du jour.', g: 'calendar', c: '#d9a441', t: function () { return L.days.length >= 3; } },
     { id: 'perfect', n: 'Œil de lynx', d: 'Trouve 3 personnes du Défi du jour dès le premier indice.', g: 'target', c: '#8fb0cc', t: function () { return L.dailyPerfect >= 3; } },
     { id: 'almost', secret: true, n: '', d: '', x: ['UHJlc3F1ZSByYWNpc3Rl', 'RGl4IG5vbXMgY2l0w6lzLCBhdWN1biBlbiBBZnJpcXVlLg=='], g: 'flag', c: '#d9a441', t: function () { return !!L.almost; } },
@@ -243,6 +252,7 @@
     if (got.length) {
       saveJSON('c3c3-badges', OWN);
       got.forEach(function (b) { toast(b); });
+      if (got.some(function (b) { return b.id === 'pnl'; })) setTimeout(function () { bonusPnl(); }, 900);
     }
     $('badge-n').textContent = Object.keys(OWN).length + '/' + shown().length;
   }
@@ -357,6 +367,11 @@
     var r = el.getBoundingClientRect(); if (!r.width && !r.height) return null;
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   }
+  var lastTap = { cc: null, t: 0 };
+  function revealCountry(cc) {
+    if (mode !== 'free') return;
+    S.sel = cc; revealCc = cc; paintAll(); renderCard();
+  }
   var ptrs = {}, drag = null, pinch = null;
   function ptrCount() { return Object.keys(ptrs).length; }
   svg.addEventListener('pointerdown', function (e) {
@@ -386,7 +401,13 @@
     if (!had) return;
     if (drag && !drag.moved && ptrCount() === 0 && e.type === 'pointerup') {
       var p = drag.target && drag.target.closest ? drag.target.closest('path') : null;
-      if (p && p.getAttribute('data-c')) select(p.getAttribute('data-c'));
+      if (p && p.getAttribute('data-c')) {
+        var tc = p.getAttribute('data-c'), now = Date.now();
+        // deux touchers rapprochés au même endroit : on montre les noms déjà trouvés du pays touché en premier
+        // (la carte se recentre après le premier toucher : on compare donc la position, pas le pays sous le doigt)
+        if (lastTap.cc && now - lastTap.t < 450 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 30) { var first = lastTap.cc; lastTap = { cc: null, t: 0 }; revealCountry(first); }
+        else { lastTap = { cc: tc, t: now, x: e.clientX, y: e.clientY }; select(tc); }
+      }
     }
     if (ptrCount() < 2) pinch = null;
     if (ptrCount() === 0) { drag = null; svg.classList.remove('drag'); }
@@ -471,24 +492,27 @@
   /* ---------- Fiche pays ---------- */
   function select(cc, focus) {
     if (mode !== 'free') return;
-    S.sel = (S.sel === cc && !focus) ? null : cc;
+    S.sel = (S.sel === cc && !focus) ? null : cc; if (S.sel !== revealCc) revealCc = null;
     paintAll(); renderCard();
     if (S.sel && focus !== false) focusOn(S.sel);
     var i = $('in-free'); if (i && S.sel && matchMedia('(pointer:fine)').matches) i.focus();
   }
+  var revealCc = null;
   function renderCard() {
     var c = $('card');
     if (!S.sel || mode !== 'free') { c.hidden = true; return; }
     var cc = S.sel, o = cs(cc), k = CONT[cc];
-    var rows = [];
+    var rows = [], open = revealCc === cc;
     o.names.forEach(function (x) {
-      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '">' + esc(x.name) + (x.rare ? ' <i>PÉPITE</i>' : '') + (x.prov ? ' <i>EN VÉRIF</i>' : '') + '</div>');
+      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '">' + esc(x.name) + (x.rare ? ' <i>PÉPITE</i>' : '') + (x.half ? ' <i>½ ORIGINE</i>' : '') + (x.prov ? ' <i>EN VÉRIF</i>' : '') + '</div>');
       if (x.slots === 2) rows.push('<div class="slot on rare">↳ place prise</div>');
     });
-    while (rows.length < 3) rows.push('<div class="slot">à trouver</div>');
-    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + fmtN(o.n) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>';
+    var filled = o.names.reduce(function (a, x) { return a + (x.slots || 1); }, 0);
+    while (filled < 3 - 0.01 && rows.length < 3) { rows.push('<div class="slot">à trouver</div>'); filled++; }
+    c.className = 'card' + (open ? ' open' : '');
+    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + fmtN(o.n) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>' + (open ? '<div class="slots">' + rows.join('') + '</div>' : '');
     c.hidden = false;
-    $('card-x').onclick = function () { S.sel = null; paintAll(); renderCard(); };
+    $('card-x').onclick = function () { S.sel = null; revealCc = null; paintAll(); renderCard(); };
   }
 
   /* ---------- Mode libre : accepter un nom ---------- */
@@ -525,9 +549,12 @@
     if (k && !touched) { pts += 150; chips.push({ t: '+150 nouveau continent', k: 'green' }); }
     if (/[gb]/.test(entry.tags || '')) { pts += 50; L.brave++; chips.push({ t: '+50 figure de courage', k: 'green' }); }
     else if (/c/.test(entry.tags || '')) { pts += 50; L.brave++; chips.push({ t: '+50 créateur·rice marquant·e', k: 'green' }); }
-    var shame = /h/.test(entry.tags || '');
-    if (shame) chips.push({ t: '🫠 point de la honte', k: 'violet' });
-    else if (/n/.test(entry.tags || '')) chips.push({ t: '📰 à la une', k: 'violet' });
+    /* Points de la honte : un pour la personnalité (étiquette « h »), un pour chaque réponse dans Israël. Netanyahou en vaut donc deux. */
+    var shameTag = /h/.test(entry.tags || ''), shameIL = entry.cc.indexOf('IL') >= 0, shameN = (shameTag ? 1 : 0) + (shameIL ? 1 : 0), shame = shameN > 0;
+    if (shameIL) chips.push({ t: '🫠 point de la honte · le pays', k: 'violet' });
+    if (shameTag) chips.push({ t: '🫠 point de la honte' + (shameIL ? ' · la personnalité' : ''), k: 'violet' });
+    else if (!shameIL && /n/.test(entry.tags || '')) chips.push({ t: '📰 à la une', k: 'violet' });
+    if (!opts.gift) { S.honteRun = shameN ? (S.honteRun || 0) + shameN : 0; L.honte = (L.honte || 0) + shameN; if (S.honteRun >= 3) L.fear = 1; }
     o.n += used; o.names.push({ name: entry.name, rare: rare, slots: used, ai: !!entry.ai });
     var complete = o.n >= 3;
     if (complete) { var cb = 300 * tm; pts += cb; chips.push({ t: '+' + cb + ' pays complet', k: 'big' }); L.comp[target] = 1; }
@@ -564,7 +591,7 @@
   }
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
-    S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
+    S.streak = 0; S.honteRun = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
     say(text, 'no', '' + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>' + (missRun >= 2 ? BOOST_BTN : ''));
   }
 
@@ -671,11 +698,18 @@
   /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
   var BYCC = null;
   /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
-  function unlock(n) {
+  function unlock(n, mix) {
     if (!BYCC) { BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length; });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
+    if (mix) {
+      // un mélange de pays faciles (A), moyens (B) et difficiles (C)
+      var g = { A: [], B: [], C: [] }; open.forEach(function (c) { (g[TIER[c]] || g.C).push(c); });
+      var order = ['C', 'B', 'A', 'C', 'B', 'A', 'C', 'C', 'B', 'A'], mixed = [];
+      for (var q = 0; q < order.length * 3 && mixed.length < open.length; q++) { var pick = g[order[q % order.length]].shift() || g.C.shift() || g.B.shift() || g.A.shift(); if (pick) mixed.push(pick); }
+      open = mixed;
+    }
     open.forEach(function (c) {
       if (done.length >= n) return;
       var pool = (BYCC[c] || []).filter(function (e) { return !S.used[norm(e.name)]; });
@@ -693,6 +727,16 @@
       items.map(function (it, i) { return '<li style="animation-delay:' + (RM ? 0 : 90 + i * 110) + 'ms">' + (plain ? '<div class="row">' : '<button type="button" data-cc="' + esc(it.cc) + '">') + '<span class="flag">' + flag(it.cc) + '</span><b>' + esc(it.name) + '</b><small>' + esc(nameOf(it.cc)) + '</small>' + (plain ? '</div>' : '</button>') + '</li>'; }).join('') + '</ul></div>';
   }
   function lightUp(items) { if (RM) return; items.forEach(function (it, i) { setTimeout(function () { flash(it.cc); }, 120 + i * 110); }); }
+  /* Bonus PNL : dix pays débloqués d'un coup, des faciles aux difficiles. */
+  function bonusPnl() {
+    if (mode !== 'free') return;
+    var done = unlock(10, true);
+    if (!done.length) return;
+    FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.35, 30, 7);
+    showRegion('world'); setRegBtn('world');
+    say('Bonus PNL', 'ok', revealHtml('Dans la légende', done, done.pts));
+    lightUp(done); lastSubmit = Date.now(); renderPills(); persist(); checkBadges();
+  }
   function boost() {
     if (mode !== 'free') return;
     var done = unlock(10);
@@ -707,6 +751,7 @@
   function submitFree(text) {
     text = text.replace(/\s+/g, ' ').trim();
     if (text.length < 2) return;
+    if (norm(text) === 'pnl') { L.pnl = 1; checkBadges(); }
     var r = lookup(text, S.sel);
     if (blocked(text)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
     if (r && r.entry) { accept(r.entry, { fuzzy: r.fuzzy }); return; }
@@ -980,16 +1025,8 @@
   $('b-notebook').onclick = function () { renderNotebook(); open('m-note'); };
   $('b-badges').onclick = function () { renderBadges(); open('m-badges'); };
   $('b-end').onclick = function () { if (mode === 'daily' && D && D.done) endDaily(); else if (mode === 'daily') { $('d-feed').innerHTML = '<div class="msg info">Termine les 5 manches pour voir ton score.</div>'; } else openEnd(); };
-  var THEMES = ['auto', 'light', 'dark'], TL = { auto: 'auto', light: 'clair', dark: 'sombre' }, theme = 'auto';
-  try { theme = localStorage.getItem('c3c3-theme') || 'auto'; } catch (e) {}
-  function applyTheme() {
-    var r = document.documentElement; if (theme === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', theme);
-    $('b-theme').querySelector('small').textContent = TL[theme];
-  }
-  $('b-theme').onclick = function () { theme = THEMES[(THEMES.indexOf(theme) + 1) % 3]; try { localStorage.setItem('c3c3-theme', theme); } catch (e) {} applyTheme(); FX.good && FX.good(1); };
-  applyTheme();
-  function soundIcon() { $('b-sound').querySelector('small').textContent = FX.on ? 'on' : 'off'; }
-  $('b-sound').onclick = function () { FX.on = !FX.on; saveJSON('c3c3-sound', FX.on); soundIcon(); if (FX.on) FX.good(1); };
+  function soundIcon() { $('b-sound').querySelector('small').textContent = LEVELS[FX.lvl].k; }
+  $('b-sound').onclick = function () { FX.lvl = (FX.lvl + 1) % LEVELS.length; FX.on = LEVELS[FX.lvl].v > 0; FX.vol = LEVELS[FX.lvl].v; saveJSON('c3c3-sound-level', FX.lvl); soundIcon(); if (FX.on) FX.good(1); };
   FX.tap = function () { tone(660, 0.05, 'triangle', 0.1); buzz(8); };
 
   function showIntro() { open('m-intro'); }

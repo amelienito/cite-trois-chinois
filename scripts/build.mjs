@@ -22,7 +22,7 @@ const DEAD = parseCSV(read('data/dead.csv')).map(r => [r.name, r.countries, r.al
 const data = 'window.__HIST=' + JSON.stringify(HIST) + ';window.__NAMES=' + JSON.stringify(NAMES) + ';window.__CONT=' + JSON.stringify(CONT) +
   ';window.__TIER=' + JSON.stringify(TIER) + ';window.__DB=' + JSON.stringify(DB) + ';window.__EXCL=' + JSON.stringify(EXCL) + ';window.__DEAD=' + JSON.stringify(DEAD) + ';';
 const shim = '<script>window.jsVectorMap={addMap:function(n,d){window.__WORLD=d;}};</script>\n<script>/* Carte : jsvectormap (MIT, voir vendor/LICENSE-jsvectormap) */\n' + read('vendor/world.js') + '</script>\n';
-const html = '<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
+const html = '<!doctype html>\n<html lang="fr" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   (repo ? '<meta name="repo" content="' + repo + '">' : '') + '\n' + read('src/head.html') + '</head><body>\n' + read('src/body.html') + shim +
   '<script>' + data + '</script>\n<script>\n' + read('src/game.js') + '</script>\n</body></html>\n';
 fs.mkdirSync(path.join(root, 'docs'), { recursive: true });
