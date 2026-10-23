@@ -214,7 +214,7 @@
     { id: 'c12', n: 'Félicitations', d: 'Remplis 12 pays.', g: 'crown', c: '#3f6a8f', t: function () { return Object.keys(L.comp).length >= 12; } },
     { id: 'c16', n: 'BG', d: 'Remplis 16 pays.', g: 'diamond', c: '#d9a441', t: function () { return Object.keys(L.comp).length >= 16; } },
     { id: 'c25', n: 'Wow', d: 'Remplis 25 pays.', g: 'globe', c: '#e6c274', t: function () { return Object.keys(L.comp).length >= 25; } },
-    { id: 'fear', n: 'Peur de rien', d: 'Enchaîne 3 points de la honte d’affilée.', g: 'bolt', c: '#2b3440', t: function () { return !!L.fear; } },
+    { id: 'fear', n: 'Peur de rien', d: 'Cumule 5 points de la honte dans la même partie.', g: 'bolt', c: '#2b3440', t: function () { return !!L.fear; } },
     { id: 'pnl', secret: true, n: '', d: '', x: ['Qm9udXMgUE5M', 'Vm91cyBhdmV6IHRhcMOpIFBOTCwgbcOqbWUgc2kgY+KAmWVzdCB1biBncm91cGUu'], g: 'spark', c: '#e6c274', t: function () { return !!L.pnl; } },
     { id: 'ai', n: 'Expertise incontestée', d: 'Un nom absent de la base est confirmé par la vérification automatique.', g: 'spark', c: '#8fb0cc', t: function () { return L.ai >= 1; } },
     { id: 'daily', n: 'Fidèle au poste', d: 'Joue 3 jours différents au Défi du jour.', g: 'calendar', c: '#d9a441', t: function () { return L.days.length >= 3; } },
@@ -554,7 +554,7 @@
     if (shameIL) chips.push({ t: '🫠 point de la honte · le pays', k: 'violet' });
     if (shameTag) chips.push({ t: '🫠 point de la honte' + (shameIL ? ' · la personnalité' : ''), k: 'violet' });
     else if (!shameIL && /n/.test(entry.tags || '')) chips.push({ t: '📰 à la une', k: 'violet' });
-    if (!opts.gift) { S.honteRun = shameN ? (S.honteRun || 0) + shameN : 0; L.honte = (L.honte || 0) + shameN; if (S.honteRun >= 3) L.fear = 1; }
+    if (!opts.gift && shameN) { S.honteTotal = (S.honteTotal || 0) + shameN; L.honte = (L.honte || 0) + shameN; if (S.honteTotal >= 5) L.fear = 1; }
     o.n += used; o.names.push({ name: entry.name, rare: rare, slots: used, ai: !!entry.ai });
     var complete = o.n >= 3;
     if (complete) { var cb = 300 * tm; pts += cb; chips.push({ t: '+' + cb + ' pays complet', k: 'big' }); L.comp[target] = 1; }
@@ -591,7 +591,7 @@
   }
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
-    S.streak = 0; S.honteRun = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
+    S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
     say(text, 'no', '' + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>' + (missRun >= 2 ? BOOST_BTN : ''));
   }
 
@@ -698,9 +698,9 @@
   /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
   var BYCC = null;
   /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
-  function unlock(n, mix) {
+  function unlock(n, mix, skip) {
     if (!BYCC) { BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
-    var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length; });
+    var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length && (!skip || skip.indexOf(c) < 0); });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
     if (mix) {
@@ -868,7 +868,12 @@
   }
 
   /* ---------- Défi du jour : trouve la personne mystère ---------- */
-  function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function hash(s) {
+    var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;   // mélange final : deux jours voisins ne donnent plus les mêmes tirages
+    return h >>> 0;
+  }
+  function dayNo(seed) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(seed); return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5) : hash(seed) % 100000; }
   function todayKey() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function dailyPool() {
     return ENTRIES.filter(function (e) {
@@ -879,21 +884,26 @@
     });
   }
   /* 5 manches : 4 personnalités (dont au moins 2 figures engagées) et, au milieu, une figure historique */
-  function pickRounds(seed) {
-    var all = dailyPool(), per = {}, out = [];
-    var byHash = function (tag) { return function (x, y) { return hash(seed + tag + x.id) - hash(seed + tag + y.id); }; };
-    function take(list, n) {
+  function pickRounds(seed, depth) {
+    var all = dailyPool(), per = {}, out = [], n = dayNo(seed);
+    // jamais les mêmes personnes que la veille
+    if (depth === undefined) depth = 6;   // on remonte quelques jours pour que chaque tirage dépende du précédent, partout pareil
+    var avoid = (depth > 0 && /^\d{4}-\d{2}-\d{2}$/.test(seed)) ? pickRounds(new Date(n * 864e5 - 864e5).toISOString().slice(0, 10), depth - 1) : [];
+    // chaque liste est mélangée une fois pour toutes, puis on avance de deux crans par jour : pas de répétition avant d'avoir fait le tour
+    var fixed = function (list, tag) { return list.slice().sort(function (x, y) { return hash(tag + x.id) - hash(tag + y.id); }); };
+    function take(list, count, start) {
       var c = 0;
-      for (var i = 0; i < list.length && c < n; i++) {
-        var k = CONT[list[i].cc[0]] || 'X';
-        if ((per[k] || 0) >= 2 || out.indexOf(list[i].id) >= 0) continue;
-        per[k] = (per[k] || 0) + 1; out.push(list[i].id); c++;
+      for (var i = 0; i < list.length && c < count; i++) {
+        var e = list[(start + i) % list.length], k = CONT[e.cc[0]] || 'X';
+        if ((per[k] || 0) >= 2 || out.indexOf(e.id) >= 0 || avoid.indexOf(e.id) >= 0) continue;
+        per[k] = (per[k] || 0) + 1; out.push(e.id); c++;
       }
     }
-    take(all.filter(function (e) { return e.tags; }).sort(byHash('a')), 2);
-    take(all.filter(function (e) { return !e.tags; }).sort(byHash('b')), 2);
+    var tagged = fixed(all.filter(function (e) { return e.tags; }), 'a'), plain = fixed(all.filter(function (e) { return !e.tags; }), 'b');
+    take(tagged, 2, (n * 2) % Math.max(tagged.length, 1));
+    take(plain, 2, (n * 2) % Math.max(plain.length, 1));
     out.sort(function (a, b) { return hash(seed + 'o' + a) - hash(seed + 'o' + b); });
-    var h = ENTRIES.filter(function (e) { return e.hist; }).sort(byHash('h'))[0];
+    var hist = fixed(ENTRIES.filter(function (e) { return e.hist; }), 'h'), h = hist[n % Math.max(hist.length, 1)];
     if (h) out.splice(2, 0, h.id);
     return out.slice(0, 5);
   }
@@ -931,7 +941,7 @@
     if (!resolved) { $('d-feed').innerHTML = D.msg || '<div class="msg info">Manche ' + (D.i + 1) + '/' + n + ' · ' + (400 - 100 * D.lvl) + ' points en jeu</div>'; }
     else {
       var last = D.rounds[D.rounds.length - 1];
-      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
+      $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') + (last.bonus && last.bonus.length ? revealHtml('En prime, deux autres pays', last.bonus, 0, true) : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
     }
@@ -944,14 +954,33 @@
     var c = e.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
     if (!c || S.used[norm(e.name)]) return false;
     accept(e, { gift: true, force: c });
-    return { name: e.name, cc: c };
+    var it = { name: e.name, cc: c }; noteUnlocked([it], 0);
+    return it;
+  }
+  /* Tout ce que le défi a débloqué dans les noms libres, pour l'écran de fin. */
+  function noteUnlocked(items, pts) { D.unl = (D.unl || []).concat(items); D.unlPts = (D.unlPts || 0) + (pts || 0); }
+  /* Une bonne réponse débloque en plus deux personnes au hasard, dans d'autres pays. */
+  function dailyBonus(e) {
+    if (D.practice) return [];
+    var b = unlock(2, false, e.cc);
+    noteUnlocked(b, b.pts); renderPills(); persist();
+    return b.map(function (x) { return { name: x.name, cc: x.cc }; });
+  }
+  /* Une tentative ratée au défi, mais pas encore tapée dans les noms libres : elle y est acceptée. */
+  function dailyTry(g) {
+    if (D.practice || g.hist || g.dead || blocked(g.name) || S.used[norm(g.name)]) return null;
+    var c = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
+    if (!c) return null;
+    var before = S.pts; accept(g, { gift: true, force: c });
+    var it = { name: g.name, cc: c }; noteUnlocked([it], S.pts - before); renderPills(); persist();
+    return it;
   }
   function resolveRound(ok, e) {
     var pts = ok ? 400 - 100 * D.lvl : 0;
     D.rounds.push({ ok: ok, lvl: D.lvl, pts: pts });
     if (ok) { D.solved = true; D.streak++; if (D.lvl === 0 && !D.practice) L.dailyPerfect++; FX.good(D.streak); FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.5, 80, 8); pop('+' + pts, window.innerWidth / 2, window.innerHeight * 0.45); if (e.tags) L.brave++; }
     else { D.lost = true; D.streak = 0; FX.bad(); shake(); }
-    dailyReveal(e); if (ok) D.rounds[D.rounds.length - 1].gift = dailyGift(e); saveDaily(); renderDaily(); checkBadges();
+    dailyReveal(e); if (ok) { var rr = D.rounds[D.rounds.length - 1]; rr.gift = dailyGift(e); rr.bonus = dailyBonus(e); } saveDaily(); renderDaily(); checkBadges();
   }
   function submitDaily(text) {
     if (D.solved || D.lost || D.done) return;
@@ -963,6 +992,8 @@
     if (g.cc.some(function (c) { return ans.cc.indexOf(c) >= 0; })) chips.push({ t: 'même pays', k: 'green' });
     if (g.job && ans.job && norm(g.job).split(' ')[0] === norm(ans.job).split(' ')[0]) chips.push({ t: 'même métier', k: 'green' });
     D.wrong++;
+    var tried = dailyTry(g);
+    if (tried) chips.push({ t: 'ajouté à tes noms libres · ' + nameOf(tried.cc), k: 'violet' });
     if (D.lvl >= NCLUE - 1) { D.msg = ''; resolveRound(false, ans); return; }
     D.lvl++; FX.bad(); shake();
     D.msg = '<div class="msg no">Ce n’est pas ' + esc(g.name) + '. Indice suivant débloqué.</div>' + (chips.length ? chipsHtml(chips) : '');
@@ -977,13 +1008,11 @@
   }
   function endDaily() {
     var tot = D.rounds.reduce(function (a, r) { return a + r.pts; }, 0), wins = D.rounds.filter(function (r) { return r.ok; }).length;
-    // le coffre du jour : deux noms de plus dans les noms libres par bonne réponse (dix au plus), une seule fois
-    if (!D.practice && wins > 0 && !D.coffre) { D.coffre = unlock(Math.min(10, wins * 2)); D.coffrePts = D.coffre.pts || 0; saveDaily(); renderPills(); persist(); checkBadges(); }
     if (!D.practice && L.days.indexOf(D.seed) < 0) { L.days.push(D.seed); if (wins >= 3) L.dailyWins++; saveJSON('c3c3-life', L); checkBadges(); }
     $('end-body').innerHTML = '<h2>' + (wins === 5 ? 'Sans faute.' : wins >= 3 ? 'Bien joué.' : 'Une autre fois !') + '</h2><div class="score">' + fmt(tot) + '</div><div style="color:var(--dim)">sur 2 500 points</div>' +
       '<pre class="share" id="dshare">' + esc(dailyShare()) + '</pre>' +
       '<div class="dstats">' + D.list.map(function (id, i) { var e = entryById(id), r = D.rounds[i]; return '<div class="stat"><b>' + (e ? flag(e.cc[0]) : '') + '</b><small>' + (e ? esc(e.name) : '') + '</small></div>'; }).slice(0, 3).join('') + '</div>' +
-      (D.coffre && D.coffre.length ? revealHtml('Débloqués dans les noms libres', D.coffre, D.coffrePts, true) : '') +
+      (D.unl && D.unl.length ? revealHtml('Débloqués dans les noms libres', D.unl, D.unlPts, true) : '') +
       '<div class="btns"><button class="btn pri" id="d-share" type="button">Copier / partager</button><button class="btn" id="d-more" type="button">Encore un défi</button><button class="btn" id="d-back" type="button">Noms libres</button></div>';
     open('m-end');
     $('d-share').onclick = function () { shareOut(dailyShare(), $('d-share')); };
