@@ -565,7 +565,7 @@
   function miss(text, quiet) {
     if (S.streak > 0) { pop('Série perdue', window.innerWidth / 2, window.innerHeight * 0.4); }
     S.streak = 0; FX.bad(); shake(); renderPills(); persist(); missRun++;
-    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + (missRun >= 3 ? BOOST_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
+    say(text, 'no', (missRun >= 2 ? HINT_BTN + ' ' : '') + '<button type="button" class="link" data-claim="' + esc(quiet || '') + '">C’est une vraie célébrité vivante ? Réclame-la.</button>');
   }
 
   /* ---------- Vérification automatique (Claude) ---------- */
@@ -960,7 +960,7 @@
   Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.addEventListener('click', function () { setMode(t.getAttribute('data-m')); }); });
 
   /* ---------- Branchements ---------- */
-  $('f-free').addEventListener('submit', function (e) { e.preventDefault(); var i = $('in-free'), v = i.value; if (!v.trim()) return; i.value = ''; submitFree(v); });
+  $('f-free').addEventListener('submit', function (e) { e.preventDefault(); var i = $('in-free'), v = i.value; if (!v.trim()) return; i.value = ''; lastSubmit = Date.now(); submitFree(v); });
   $('f-daily').addEventListener('submit', function (e) { e.preventDefault(); var i = $('in-daily'), v = i.value; if (!v.trim()) return; i.value = ''; submitDaily(v); });
   $('feed').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
@@ -969,7 +969,6 @@
     else if (b.hasAttribute('data-hint')) giveHint(b.getAttribute('data-hint') === '2');
     else if (b.hasAttribute('data-boost')) boost();
   });
-  if ($('b-boost')) $('b-boost').onclick = function () { $('menu').hidden = true; boost(); };
   if ($('b-hint')) $('b-hint').onclick = function () { $('menu').hidden = true; giveHint(false); };
   $('b-claim').onclick = function () { openClaim(''); };
   window.__rand = function () {
@@ -1107,7 +1106,7 @@
     'Chaque bonne réponse d’affilée augmente le multiplicateur de série. Une erreur le remet à zéro, mais le score déjà acquis reste.',
     'Les pays les moins cités rapportent davantage de points. Quitter l’Europe et l’Amérique du Nord est souvent plus rentable qu’il n’y paraît.'
   ];
-  var lastAct = Date.now(), talked = { 0: [], 1: [] }, nudges = 0;
+  var lastSubmit = Date.now(), lastOffer = 0, lastAct = Date.now(), talked = { 0: [], 1: [] }, nudges = 0;
   ['keydown', 'pointerdown', 'input'].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
   function nextTalk(list, key) {
     var u = talked[key]; if (u.length >= list.length) u.length = 0;
@@ -1120,7 +1119,9 @@
     var n = (typeof S !== 'undefined' && S.names) ? S.names.length : 0, msg;
     msg = n ? nextTalk(TALK1, 1) : nextTalk(TALK0, 0);
     nudges++; lastAct = Date.now();
-    say(esc(msg), 'info', HINT_BTN + ' ' + BOOST_BTN);
+    var now = Date.now(), offer = now - lastSubmit >= 45000 && now - lastOffer >= 45000;
+    if (offer) lastOffer = now;
+    say(esc(msg), 'info', HINT_BTN + (offer ? ' ' + BOOST_BTN : ''));
   }, 2000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
