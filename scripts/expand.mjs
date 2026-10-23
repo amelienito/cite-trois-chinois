@@ -112,7 +112,7 @@ rows.slice(0, 25).forEach(e => console.log(`  ${e.name} [${e.cc.join('/')}] ${e.
 
 if (WRITE) {
   const today = new Date().toISOString().slice(0, 10);
-  rows.forEach(e => people.push({ name: e.name, countries: e.cc.join('/'), tier: 'r', aliases: '', job: e.job, birth_year: e.year, hint: '', tags: 'f', wikidata: e.id, status: 'verified', verified_on: today, note: 'ajouté automatiquement depuis Wikidata (notoriété)' }));
+  rows.forEach(e => people.push({ name: e.name, countries: e.cc.join('/'), tier: 'r', aliases: '', job: e.job, birth_year: e.year, hint: '', tags: 'f', wikidata: e.id, status: 'verified', verified_on: today, note: '' }));
   fs.writeFileSync(path.join(root, 'data/people.csv'), stringifyCSV(people, PEOPLE_COLS));
   console.log(`data/people.csv mis à jour (${people.length} lignes).`);
 }

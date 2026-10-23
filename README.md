@@ -17,7 +17,7 @@ Le site est publié depuis le dossier `docs/` par GitHub Pages.
 
 ## Données
 
-Les entrées sont vérifiées contre Wikidata (`npm run verify`). 
+Les entrées sont vérifiées contre Wikidata (`npm run verify`).
 
 ## Licences
 
