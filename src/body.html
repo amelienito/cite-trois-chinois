@@ -1,0 +1,81 @@
+<div id="app">
+  <header class="hud">
+    <div class="logo"><span>Cite</span><i>3</i><span>chinois</span></div>
+    <div class="pills">
+      <div class="pill x" id="pl-names"><small>Noms</small><b id="v-names">0</b></div>
+      <div class="pill" id="pl-countries"><small>Pays</small><b id="v-countries">0</b></div>
+      <div class="pill hot" id="pl-pts"><small>Points</small><b id="v-pts">0</b></div>
+      <div class="pill x" id="pl-streak"><small>Série</small><b id="v-streak">×1</b></div>
+    </div>
+    <div class="tools">
+      <button class="ico" id="b-menu" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
+    </div>
+    <nav class="menu" id="menu" hidden>
+      <button class="mi" id="b-help" type="button">Règles du jeu</button>
+      <button class="mi" id="b-badges" type="button">Succès <small id="badge-n">0/0</small></button>
+      <button class="mi" id="b-notebook" type="button">Mon carnet</button>
+      <button class="mi" id="b-countries" type="button">Choisir un pays</button>
+      <button class="mi" id="b-runner" type="button" aria-pressed="false">Écran de détente <small>off</small></button>
+      <p class="note">J’avais pas les droits pour le vrai Subway Surfers</p>
+      <button class="mi" id="b-theme" type="button">Thème <small>auto</small></button>
+      <button class="mi" id="b-sound" type="button">Son <small>on</small></button>
+      <button class="mi" id="b-claim" type="button">Un nom refusé à tort ?</button>
+      <button class="mi" id="b-admin" type="button" hidden>Réclamations</button>
+      <button class="mi end" id="b-end" type="button">Terminer la partie</button>
+    </nav>
+  </header>
+
+  <section class="stage">
+    <div id="mapwrap">
+      <svg id="map" viewBox="0 0 900 440.7" role="img" aria-label="Carte du monde"></svg>
+      <div class="tip" id="tip" hidden></div>
+      <button class="regbtn" id="reg-btn" type="button" aria-haspopup="true" aria-expanded="false">Monde</button>
+      <div class="regions" id="regions" hidden><button type="button" data-r="world" class="on">Monde</button><button type="button" data-r="EU">Europe</button><button type="button" data-r="AF">Afrique</button><button type="button" data-r="AS">Asie</button><button type="button" data-r="NA">Amérique N.</button><button type="button" data-r="SA">Amérique S.</button><button type="button" data-r="OC">Océanie</button><button type="button" data-r="rand">⚄ Hasard</button></div>
+      <div class="stats" id="stats" hidden></div>
+      <div id="runner" hidden><small>Écran de détente</small><canvas id="rn" width="52" height="92"></canvas></div>
+      <div class="zoom"><button id="z-in" type="button" aria-label="Zoom avant">+</button><button id="z-out" type="button" aria-label="Zoom arrière">−</button><button id="z-reset" type="button" aria-label="Recentrer">⌂</button></div>
+    </div>
+    <div class="card" id="card" hidden></div>
+  </section>
+
+  <section class="dock">
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" role="tab" data-m="free">Noms libres</button>
+      <button class="tab" type="button" role="tab" data-m="daily">Défi du jour</button>
+    </div>
+
+    <div id="free">
+      <div class="feed" id="feed" aria-live="polite"><div class="msg info">Tape le nom d'une personne célèbre et vivante. Le pays est trouvé tout seul.</div></div>
+      <form class="row" id="f-free" autocomplete="off">
+        <input id="in-free" type="text" placeholder="Rihanna, Messi, Tex…" enterkeyhint="send" autocapitalize="words" spellcheck="false" aria-label="Nom d'une célébrité vivante">
+        <button class="go" id="go-free" type="submit">OK</button>
+      </form>
+    </div>
+
+    <div id="daily" hidden>
+      <div class="dhead"><div><span id="d-title">Défi du jour</span><span class="theme">Personnalités</span></div><div class="dots" id="d-dots"></div></div>
+      <div class="clues" id="d-clues"></div>
+      <div class="feed" id="d-feed" aria-live="polite"></div>
+      <form class="row" id="f-daily" autocomplete="off">
+        <input id="in-daily" type="text" placeholder="Qui est-ce ?" autocapitalize="words" spellcheck="false" aria-label="Nom de la personne mystère">
+        <button class="go" id="go-daily" type="submit">OK</button>
+      </form>
+      <div class="sub">
+        <button class="link" id="d-hint" type="button">Un indice de plus (−100)</button>
+        <button class="link" id="d-skip" type="button">Je passe</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toasts"></div>
+  <div id="fx" aria-hidden="true"></div>
+
+  <div class="modal" id="m-intro" hidden><div class="sheet intro" role="dialog" aria-modal="true" aria-label="Introduction"><svg class="intro-art" viewBox="0 0 240 240" fill="none" stroke="#3f6a8f" stroke-width="1" aria-hidden="true"><circle cx="120" cy="120" r="104"/><circle cx="120" cy="120" r="72" stroke-dasharray="2 5"/><circle cx="120" cy="120" r="38"/><ellipse cx="120" cy="120" rx="104" ry="40"/><ellipse cx="120" cy="120" rx="40" ry="104"/><ellipse cx="120" cy="120" rx="72" ry="104" stroke-opacity=".6"/><line x1="0" y1="120" x2="240" y2="120"/><line x1="120" y1="0" x2="120" y2="240"/><path d="M104 120h-18M136 120h18M120 104v-18M120 136v18" stroke="#d9a441" stroke-width="2"/><circle cx="150" cy="86" r="3.5" fill="#d9a441" stroke="none"/><path d="M150 86l44-34h30" stroke="#d9a441"/></svg><h1 class="quote">«&nbsp;Qui peut citer 3 chinois vivants ici&nbsp;?&nbsp;»</h1><p class="by">demandait Gilles Gressani à LCI.</p><p class="lead">C’est une bonne question que l’on peut étirer afin de tester nos connaissances.</p><ol class="steps"><li><b>01</b><span>Tape le nom d’une personnalité encore vivante.</span></li><li><b>02</b><span>Trois noms complètent un pays.</span></li><li><b>03</b><span>Remplis le plus de pays possible.</span></li></ol><div class="btns"><button class="btn pri" id="intro-go" type="button">Jouer</button></div></div></div>
+  <div class="modal" id="m-end" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Score final"><button class="x" type="button" data-close aria-label="Fermer">✕</button><div id="end-body"></div></div></div>
+  <div class="modal" id="m-badges" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Badges"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Badges</h2><div class="bgrid" id="bgrid"></div></div></div>
+  <div class="modal" id="m-countries" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Pays"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Tous les pays</h2><input class="find" id="finder" type="text" placeholder="Chercher un pays…" aria-label="Chercher un pays"><div class="clist" id="clist"></div></div></div>
+  <div class="modal" id="m-note" hidden><div class="sheet nb" role="dialog" aria-modal="true" aria-label="Mon carnet"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Mon carnet</h2><div id="nb-body"></div></div></div>
+  <div class="modal" id="m-claim" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Réclamation"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Refusé à tort ?</h2><p style="color:var(--dim);margin:4px 0 0">Dis-nous qui et pour quel pays. Tu récupères un point provisoire, et le nom part en vérification pour la base.</p>
+    <form id="f-claim"><label class="f" for="c-name">Nom de la personne</label><input class="t" id="c-name" type="text" required><label class="f" for="c-cc">Pays</label><select id="c-cc"></select><div class="btns"><button class="btn pri" type="submit">Envoyer</button></div></form></div></div>
+  <div class="modal" id="m-admin" hidden><div class="sheet nb" role="dialog" aria-modal="true" aria-label="Réclamations"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Réclamations</h2><p style="color:var(--dim);margin:4px 0 10px">Accepte un nom pour l’ajouter à la base du jeu, ou refuse-le. Corrige le nom et le pays si besoin.</p><div id="adm-body"></div></div></div>
+</div>
