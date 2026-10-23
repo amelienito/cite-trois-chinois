@@ -1,0 +1,32 @@
+name: Élargir la base depuis Wikidata
+on:
+  workflow_dispatch:
+    inputs:
+      per_country: { description: "Personnes max par pays", default: "120" }
+      min_links: { description: "Notoriété minimale (pages Wikipédia)", default: "18" }
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  expand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Chercher les personnes les plus notoires, pays par pays
+        run: node scripts/expand.mjs --write --per-country "${{ inputs.per_country }}" --min-links "${{ inputs.min_links }}"
+      - name: Contrôler et reconstruire
+        run: node scripts/check.mjs && node scripts/build.mjs
+      - name: Proposer le résultat dans une demande de fusion
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          git config user.name "expand-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout -b elargissement-$(date +%F-%H%M)
+          git add data docs
+          git diff --cached --quiet && { echo "Rien à ajouter"; exit 0; }
+          git commit -m "Élargissement de la base depuis Wikidata"
+          git push -u origin HEAD
+          gh pr create --fill --title "Élargissement de la base ($(date +%F))" --body "Personnes vivantes les plus notoires par pays, ajoutées en mode libre (tag f). À relire avant de fusionner."

@@ -1,0 +1,198 @@
+code,name_fr,continent,tier
+AD,Andorre,EU,C
+AE,Émirats arabes unis,AS,C
+AF,Afghanistan,AS,C
+AG,Antigua-et-Barbuda,NA,C
+AL,Albanie,EU,C
+AM,Arménie,AS,C
+AO,Angola,AF,C
+AR,Argentine,SA,B
+AT,Autriche,EU,B
+AU,Australie,OC,A
+AZ,Azerbaïdjan,AS,C
+BA,Bosnie-Herzégovine,EU,C
+BB,Barbade,NA,C
+BD,Bangladesh,AS,C
+BE,Belgique,EU,B
+BF,Burkina Faso,AF,C
+BG,Bulgarie,EU,C
+BH,Bahreïn,AS,C
+BI,Burundi,AF,C
+BJ,Bénin,AF,C
+BN,Brunei,AS,C
+BO,Bolivie,SA,C
+BR,Brésil,SA,A
+BS,Bahamas,NA,C
+BT,Bhoutan,AS,C
+BW,Botswana,AF,C
+BY,Biélorussie,EU,C
+BZ,Belize,NA,C
+CA,Canada,NA,A
+CD,RD Congo,AF,C
+CF,Centrafrique,AF,C
+CG,Congo,AF,C
+CH,Suisse,EU,B
+CI,Côte d'Ivoire,AF,C
+CL,Chili,SA,C
+CM,Cameroun,AF,C
+CN,Chine,AS,B
+CO,Colombie,SA,C
+CR,Costa Rica,NA,C
+CU,Cuba,NA,C
+CV,Cap-Vert,AF,C
+CY,Chypre,EU,C
+CZ,Tchéquie,EU,C
+DE,Allemagne,EU,A
+DJ,Djibouti,AF,C
+DK,Danemark,EU,B
+DM,Dominique,NA,C
+DO,Rép. dominicaine,NA,C
+DZ,Algérie,AF,C
+EC,Équateur,SA,C
+EE,Estonie,EU,C
+EG,Égypte,AF,C
+ER,Érythrée,AF,C
+ES,Espagne,EU,A
+ET,Éthiopie,AF,C
+FI,Finlande,EU,B
+FJ,Fidji,OC,C
+FM,Micronésie,OC,C
+FR,France,EU,A
+GA,Gabon,AF,C
+GB,Royaume-Uni,EU,A
+GD,Grenade,NA,C
+GE,Géorgie,AS,C
+GH,Ghana,AF,C
+GM,Gambie,AF,C
+GN,Guinée,AF,C
+GQ,Guinée équatoriale,AF,C
+GR,Grèce,EU,C
+GT,Guatemala,NA,C
+GW,Guinée-Bissau,AF,C
+GY,Guyana,SA,C
+HN,Honduras,NA,C
+HR,Croatie,EU,C
+HT,Haïti,NA,C
+HU,Hongrie,EU,C
+ID,Indonésie,AS,C
+IE,Irlande,EU,B
+IL,Israël,AS,C
+IN,Inde,AS,B
+IQ,Irak,AS,C
+IR,Iran,AS,C
+IS,Islande,EU,C
+IT,Italie,EU,A
+JM,Jamaïque,NA,C
+JO,Jordanie,AS,C
+JP,Japon,AS,A
+KE,Kenya,AF,C
+KG,Kirghizistan,AS,C
+KH,Cambodge,AS,C
+KI,Kiribati,OC,C
+KM,Comores,AF,C
+KN,Saint-Christophe-et-Niévès,NA,C
+KP,Corée du Nord,AS,C
+KR,Corée du Sud,AS,B
+KW,Koweït,AS,C
+KZ,Kazakhstan,AS,C
+LA,Laos,AS,C
+LB,Liban,AS,C
+LC,Sainte-Lucie,NA,C
+LI,Liechtenstein,EU,C
+LK,Sri Lanka,AS,C
+LR,Liberia,AF,C
+LS,Lesotho,AF,C
+LT,Lituanie,EU,C
+LU,Luxembourg,EU,C
+LV,Lettonie,EU,C
+LY,Libye,AF,C
+MA,Maroc,AF,C
+MC,Monaco,EU,C
+MD,Moldavie,EU,C
+ME,Monténégro,EU,C
+MG,Madagascar,AF,C
+MH,Îles Marshall,OC,C
+MK,Macédoine du Nord,EU,C
+ML,Mali,AF,C
+MM,Birmanie,AS,C
+MN,Mongolie,AS,C
+MR,Mauritanie,AF,C
+MT,Malte,EU,C
+MU,Maurice,AF,C
+MV,Maldives,AS,C
+MW,Malawi,AF,C
+MX,Mexique,NA,B
+MY,Malaisie,AS,C
+MZ,Mozambique,AF,C
+NA,Namibie,AF,C
+NE,Niger,AF,C
+NG,Nigeria,AF,C
+NI,Nicaragua,NA,C
+NL,Pays-Bas,EU,B
+NO,Norvège,EU,B
+NP,Népal,AS,C
+NR,Nauru,OC,C
+NZ,Nouvelle-Zélande,OC,B
+OM,Oman,AS,C
+PA,Panama,NA,C
+PE,Pérou,SA,C
+PG,Papouasie-Nouvelle-Guinée,OC,C
+PH,Philippines,AS,C
+PK,Pakistan,AS,C
+PL,Pologne,EU,B
+PS,Palestine,AS,C
+PT,Portugal,EU,B
+PW,Palaos,OC,C
+PY,Paraguay,SA,C
+QA,Qatar,AS,C
+RO,Roumanie,EU,C
+RS,Serbie,EU,C
+RU,Russie,EU,B
+RW,Rwanda,AF,C
+SA,Arabie saoudite,AS,C
+SB,Îles Salomon,OC,C
+SC,Seychelles,AF,C
+SD,Soudan,AF,C
+SE,Suède,EU,B
+SG,Singapour,AS,C
+SI,Slovénie,EU,C
+SK,Slovaquie,EU,C
+SL,Sierra Leone,AF,C
+SM,Saint-Marin,EU,C
+SN,Sénégal,AF,C
+SO,Somalie,AF,C
+SR,Suriname,SA,C
+SS,Soudan du Sud,AF,C
+ST,Sao Tomé-et-Principe,AF,C
+SV,Salvador,NA,C
+SY,Syrie,AS,C
+SZ,Eswatini,AF,C
+TD,Tchad,AF,C
+TG,Togo,AF,C
+TH,Thaïlande,AS,C
+TJ,Tadjikistan,AS,C
+TL,Timor oriental,AS,C
+TM,Turkménistan,AS,C
+TN,Tunisie,AF,C
+TO,Tonga,OC,C
+TR,Turquie,AS,B
+TT,Trinité-et-Tobago,NA,C
+TV,Tuvalu,OC,C
+TW,Taïwan,AS,C
+TZ,Tanzanie,AF,C
+UA,Ukraine,EU,C
+UG,Ouganda,AF,C
+US,États-Unis,NA,A
+UY,Uruguay,SA,C
+UZ,Ouzbékistan,AS,C
+VA,Vatican,EU,C
+VC,Saint-Vincent-et-les-Grenadines,NA,C
+VE,Venezuela,SA,C
+VN,Viêt Nam,AS,C
+VU,Vanuatu,OC,C
+WS,Samoa,OC,C
+XK,Kosovo,EU,C
+YE,Yémen,AS,C
+ZA,Afrique du Sud,AF,C
+ZM,Zambie,AF,C
+ZW,Zimbabwe,AF,C

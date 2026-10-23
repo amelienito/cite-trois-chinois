@@ -1,0 +1,19 @@
+name: Contrôles
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Contrôles de format (doublons, pays, indices qui révèlent le nom)
+        run: node scripts/check.mjs
+      - name: Les nouvelles lignes doivent exister sur Wikidata, être vivantes et notoires
+        if: github.event_name == 'pull_request'
+        run: node scripts/verify.mjs --since origin/${{ github.base_ref }} --strict
+      - name: Le site se construit
+        run: node scripts/build.mjs
