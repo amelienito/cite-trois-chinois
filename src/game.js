@@ -798,6 +798,10 @@
     var rec = { name: name, cc: cc, mode: mode, t: Date.now(), v: 3, status: 'pending' };
     claimQueue.push(rec); saveJSON('c3c3-claims', claimQueue.slice(-100));
     if (window.claude && window.claude.use) window.claude.use('db').then(function (db) { if (db) return db.collection('claims').add(rec); }).catch(function () {});
+    try {
+      var fd = new URLSearchParams(); fd.append('entry.665975020', name); fd.append('entry.1465653503', nameOf(cc) + ' (' + cc + ')');
+      fetch('https://docs.google.com/forms/d/e/1FAIpQLSfKjnU_wrJef9Te-k_OjN2zwCL8aruHIswffb-_x8M8_XpY9g/formResponse', { method: 'POST', mode: 'no-cors', body: fd }).catch(function () {});
+    } catch (e) {}
     L.claims++; S.claims++;
     close('m-claim');
     var repoMeta = document.querySelector('meta[name=repo]'), ghLink = '';
