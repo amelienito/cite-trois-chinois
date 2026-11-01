@@ -638,8 +638,11 @@
     return out.map(function (c) { return c.mainsnak.datavalue.value; });
   }
   function askWiki(text) {
+    return askWikiIn(text, 'fr').then(function (a) { return a && a.no ? askWikiIn(text, 'en') : a; });
+  }
+  function askWikiIn(text, lang) {
     var q = encodeURIComponent(text.slice(0, 80)), want = norm(text).replace(/ /g, '');
-    return wdGet('action=wbsearchentities&type=item&language=fr&uselang=fr&limit=8&search=' + q).then(function (res) {
+    return wdGet('action=wbsearchentities&type=item&language=' + lang + '&uselang=' + lang + '&limit=10&search=' + q).then(function (res) {
       var ids = (res.search || []).map(function (x) { return x.id; });
       if (!ids.length) return { no: true };
       return wdGet('action=wbgetentities&props=labels|aliases|descriptions|claims|sitelinks&languages=fr|en&ids=' + ids.join('|')).then(function (d) {
@@ -654,7 +657,7 @@
           var hit = names.some(function (n) { return n && norm(n).replace(/ /g, '') === want; });
           if (!hit) return;
           var links = Object.keys(e.sitelinks || {}).length;
-          if (links < 2) return;
+          if (links < 1) return;
           if (claimIds(e, 'P570').length) { if (!dead) dead = lab; return; }
           var by = claimIds(e, 'P569')[0], year = by && by.time ? +by.time.slice(1, 5) : 0;
           if (year > 2007) return;
