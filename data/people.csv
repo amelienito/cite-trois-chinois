@@ -258,7 +258,7 @@ Nawell Madani,BE,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read prop
 Netsky,BE,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Oscar and the Wolf,BE,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Remco Evenepoel,BE,r,Evenepoel,Cycliste,2000,Champion olympique du contre-la-montre à Paris en 2024.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Romelu Lukaku,BE,s,Lukaku,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Romelu Lukaku,BE/CD,s,Lukaku,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Roméo Elvis,BE,r,,Artiste,,,fh,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Selah Sue,BE,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Shay,BE,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -517,7 +517,7 @@ Alain Mabanckou,CG,s,Mabanckou,Écrivain,1966,"Écrivain franco-congolais, auteu
 Denis Sassou-Nguesso,CG,r,Sassou Nguesso;Sassou-Nguesso,Président,1943,Président du Congo-Brazzaville.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Alain Berset,CH,r,Berset,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Bertrand Piccard,CH,r,Piccard,Aéronaute,1958,"Premier tour du monde en ballon sans escale, puis en avion solaire.",c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Granit Xhaka,CH,r,Xhaka,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Granit Xhaka,CH/XK,r,Xhaka,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Herzog & de Meuron,CH,r,Jacques Herzog;Pierre de Meuron,Architectes,1950,Architectes du Nid d'oiseau de Pékin et de la Tate Modern.,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Joël Dicker,CH,r,Joel Dicker,Écrivain,1985,Auteur de « La Vérité sur l'affaire Harry Quebert ».,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Lara Gut-Behrami,CH,r,,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
@@ -529,7 +529,7 @@ Peter Zumthor,CH,r,Zumthor,Architecte,1943,"Architecte des thermes de Vals, prix
 Roger Federer,CH,s,Federer,Ancien joueur de tennis,1981,"Vingt titres du Grand Chelem, retraité en 2022.",,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Stan Wawrinka,CH,r,Wawrinka,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Thomas Wiesel,CH,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Xherdan Shaqiri,CH,r,Shaqiri,Footballeur,1991,Milieu de terrain suisse d'origine kosovare.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Xherdan Shaqiri,CH/XK,r,Shaqiri,Footballeur,1991,Milieu de terrain suisse d'origine kosovare.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Yann Sommer,CH,r,,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Alassane Ouattara,CI,r,Ouattara,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Alpha Blondy,CI,r,Blondy,Chanteur,1953,Chanteur de reggae ivoirien.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -922,7 +922,7 @@ Fellag,DZ,r,Mohamed Fellag,Humoriste,,,f,,unverified,,erreur réseau : Cannot re
 Houari Benchenet,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Imane Khelif,DZ,r,Khelif,Boxeuse,1999,Championne olympique de boxe 2024.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Islam Slimani,DZ,r,Slimani,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Ismaël Bennacer,DZ,r,Ismael Bennacer;Bennacer,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Ismaël Bennacer,DZ/FR,r,Ismael Bennacer;Bennacer,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Issam,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Kamel Daoud,DZ,s,Daoud,Écrivain,1970,Prix Goncourt 2024 pour « Houris ».,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
 Khaled,DZ/MA,s,Cheb Khaled,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -931,7 +931,7 @@ Mohamed Allaoua,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read prop
 Rabah Madjer,DZ,r,Madjer,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Rachid Bouchareb,DZ,r,Bouchareb,Réalisateur,1953,Réalisateur d'« Indigènes ».,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Reda Taliani,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Riyad Mahrez,DZ,r,Mahrez,Footballeur,1991,Ailier d'Al-Ahli.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Riyad Mahrez,DZ/FR,r,Mahrez,Footballeur,1991,Ailier d'Al-Ahli.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Saïd Benrahma,DZ,r,Said Benrahma;Benrahma,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Sofiane,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Soolking,DZ,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1032,7 +1032,7 @@ Javier Cercas,ES,r,Cercas,Écrivain,1962,Auteur des « Soldats de Salamine ».,c
 Joan Roca,ES,r,Roca,Cuisinier,1964,Chef catalan d'un trois-étoiles à Gérone.,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
 Joaquín Reyes,ES,r,Joaquin Reyes,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Julio Iglesias,ES,r,,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
-Lamine Yamal,ES,s,Yamal,Footballeur,2007,Prodige du FC Barcelone.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Lamine Yamal,ES/MA/GQ,s,Yamal,Footballeur,2007,Prodige du FC Barcelone.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Lola Índigo,ES,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Malú,ES,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Manu Chao,ES/FR,s,Chao,Chanteur,1961,"Ex-chanteur de la Mano Negra, auteur de « Clandestino ».",g,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1159,7 +1159,7 @@ Artus,FR,r,,Humoriste et acteur,,,f,,unverified,,erreur réseau : Cannot read pr
 Ary Abittan,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Assa Traoré,FR,r,Traore,Militante,1985,"Militante du comité Adama, dont le frère est mort lors d'une interpellation.",gb,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Audrey Tautou,FR,r,Tautou,Actrice,1976,Actrice d'« Amélie Poulain ».,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Aurélien Tchouaméni,FR,r,Tchouameni,Footballeur,2000,Milieu de terrain du Real Madrid.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Aurélien Tchouaméni,FR/CM,r,Tchouameni,Footballeur,2000,Milieu de terrain du Real Madrid.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Aya Nakamura,FR,s,Nakamura;Aya,Chanteuse,1995,"Chanteuse de « Djadja », née à Bamako.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Baptiste Lecaplain,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
 Bernard Arnault,FR,r,Arnault,Homme d'affaires,1949,,n,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1220,7 +1220,7 @@ Dominique Perrault,FR,r,Perrault,Architecte,1953,Architecte de la Bibliothèque 
 Doully,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Édouard Louis,FR,r,Edouard Louis,Écrivain,1992,"Auteur d'« En finir avec Eddy Bellegueule », issu d'un village de Picardie.",g,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Édouard Philippe,FR,r,Edouard Philippe,Homme politique,1970,,nh,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Eduardo Camavinga,FR,r,Camavinga,Footballeur,2002,Milieu de terrain du Real Madrid.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Eduardo Camavinga,FR/CD/AO,r,Camavinga,Footballeur,2002,Milieu de terrain du Real Madrid.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Élie Semoun,FR,r,Elie Semoun,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Élise Lucet,FR,r,Elise Lucet,Journaliste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Emma CakeCup,FR,r,,Youtubeuse,,,f,Q117070725,review,2026-10-26,"Emma Paris : notoriété faible (1 pages Wikipédia, seuil 8)"
@@ -1311,7 +1311,7 @@ Joyca,FR,r,,Youtubeur,,,f,,unverified,,erreur réseau : Cannot read properties o
 JR,FR,s,JR artiste,Artiste de rue,1983,"Photographe qui colle d'immenses portraits dans l'espace public, toujours avec chapeau et lunettes noires.",c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Juju Fitcats,FR,r,Jujufitcats,Influenceuse,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Jul,FR,s,Jul rappeur,Rappeur,1990,Rappeur marseillais hyper prolifique.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Jules Koundé,FR,r,Kounde,Footballeur,1998,Défenseur du FC Barcelone.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Jules Koundé,FR/BJ,r,Kounde,Footballeur,1998,Défenseur du FC Barcelone.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Julia Ducournau,FR,r,Ducournau,Réalisatrice,1983,Palme d'or 2021 pour « Titane ».,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Julien Doré,FR,s,Dore,Chanteur,1982,"Révélé par la « Nouvelle Star », auteur de « Le Lac ».",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Juliette Binoche,FR,s,Binoche,Actrice,1964,Oscar pour « Le Patient anglais ».,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1319,7 +1319,7 @@ Justine Triet,FR,r,Triet,Réalisatrice,1978,Palme d'or 2023 pour « Anatomie d'u
 Kaaris,FR,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Kad Merad,FR,r,,Humoriste,,,f,Q983159,verified,2026-10-26,Kad Merad — acteur franco-algérien (33 pages)
 Kameto,FR,r,Kamel Kebir,Streamer,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Karim Benzema,FR,s,Benzema,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Karim Benzema,FR/DZ,s,Benzema,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Karine Le Marchand,FR,r,Le Marchand,Animatrice,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Kendji Girac,FR,r,Kendji,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Keny Arkana,FR,r,,Rappeuse,1982,Rappeuse marseillaise liée au mouvement altermondialiste.,g,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1332,7 +1332,7 @@ Kingsley Coman,FR,r,Coman,Footballeur,1996,"Ailier du Bayern, buteur de la final
 Koba LaD,FR,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Kungs,FR,r,Kungs,DJ,1996,DJ de « This Girl ».,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Kyan Khojandi,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Kylian Mbappé,FR,s,Mbappe,Footballeur,1998,"Champion du monde 2018, attaquant du Real Madrid.",,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Kylian Mbappé,FR/CM/DZ,s,Mbappe,Footballeur,1998,"Champion du monde 2018, attaquant du Real Madrid.",,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 La Fouine,FR,r,Fouiny Baby,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Lacrim,FR,r,,Artiste,,,f,Q14917975,verified,2026-10-26,Lacrim — rappeur et acteur franco-algérien (10 pages)
 Lartiste,FR,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
@@ -1399,7 +1399,7 @@ Michou,FR,r,,YouTubeur,,,f,,unverified,,erreur réseau : Cannot read properties 
 Mister V,FR,r,MisterV;Yvick Letexier,YouTubeur et humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Muriel Robin,FR,r,,Humoriste,,,f,Q2525146,verified,2026-10-26,"Muriel Robin — humoriste, autrice, actrice, réalisatrice et metteuse en scène française (21 pages)"
 Mylène Farmer,FR,s,Farmer,Chanteuse,1961,"Reine de la pop française, clips-films de Laurent Boutonnat.",c,Q185002,verified,2026-10-26,Q185002 — auteure-compositrice-interprète franco-canadienne (61 pages)
-N'Golo Kanté,FR,s,Kante;Ngolo Kante,Footballeur,1991,"Milieu de terrain champion du monde 2018, réputé pour sa discrétion.",,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+N'Golo Kanté,FR/ML,s,Kante;Ngolo Kante,Footballeur,1991,"Milieu de terrain champion du monde 2018, réputé pour sa discrétion.",,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Nabilla,FR,r,Nabilla Benattia,Personnalité de télé-réalité,1992,Star de télé-réalité.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Nagui,FR,r,,Animateur,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Naps,FR,r,,Rappeur,1995,Rappeur marseillais.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1420,7 +1420,7 @@ Olivier Giroud,FR,s,Giroud,Footballeur,1986,"Meilleur buteur de l'équipe de Fra
 Omar Sy,FR,s,Sy,Acteur,1978,Acteur d'« Intouchables ».,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Orelsan,FR,s,Orelsan,Rappeur,1982,"Rappeur caennais, auteur de « La Fête est finie ».",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Orlan,FR,r,,Artiste,1947,Artiste de la chirurgie esthétique performative.,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Ousmane Dembélé,FR,s,Dembele;Dembélé,Footballeur,1997,"Attaquant du PSG, Ballon d'or 2025.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Ousmane Dembélé,FR/ML/MR/SN,s,Dembele;Dembélé,Footballeur,1997,"Attaquant du PSG, Ballon d'or 2025.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Oxmo Puccino,FR,r,Oxmo,Rappeur,1974,"Surnommé « Black Jacques Brel », auteur de « L'Enfant seul ».",cf,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Pablo Mira,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Panayotis Pascot,FR,r,Panayotis,Humoriste et acteur,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1431,7 +1431,7 @@ Patrick Sébastien,FR,r,Patrick Sebastien,Animateur,,,f,,unverified,,erreur rés
 Patrick Timsit,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Patrick Vieira,FR,r,Vieira,Footballeur,1976,"Ancien milieu d'Arsenal, champion du monde 1998.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Paul Mirabel,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Paul Pogba,FR,s,Pogba,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Paul Pogba,FR/GN,s,Pogba,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Pauline Ferrand-Prévot,FR,r,Ferrand Prevot,Cycliste,1992,Championne olympique de VTT à Paris en 2024.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Pénélope Bagieu,FR,r,Bagieu,Autrice de bande dessinée,1982,Autrice des « Culottées » sur des femmes qui ont osé.,c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Philippe Chevallier,FR,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
@@ -1448,7 +1448,7 @@ Pomme,FR,r,,Chanteuse,1996,Auteure-compositrice de « Les Failles du Soleil ».,
 Ponce,FR,r,,Streamer,,,f,Q100705519,review,2026-10-26,"Ponce : notoriété faible (4 pages Wikipédia, seuil 8)"
 Rachida Dati,FR,r,Dati,Femme politique,1965,,nh,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Ramzy Bedia,FR,r,Ramzy,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Randal Kolo Muani,FR,r,Kolo Muani,Footballeur,1998,"Attaquant, finaliste du Mondial 2022.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Randal Kolo Muani,FR/CD,r,Kolo Muani,Footballeur,1998,"Attaquant, finaliste du Mondial 2022.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Raphaël Glucksmann,FR,r,Glucksmann;Raphael Glucksmann,Homme politique,1979,"Eurodéputé, fondateur de Place publique.",n,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Raphaël Varane,FR,r,Varane,Footballeur,1993,"Défenseur champion du monde 2018, passé par le Real Madrid.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 RebeuDeter,FR,r,Rebeu Deter;Rebeu;Billy,Streamer et YouTubeur,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1529,7 +1529,7 @@ Zinedine Zidane,FR,s,Zidane;Zizou,Footballeur,1972,"Champion du monde 1998, coup
 Zola,FR,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
 Ali Bongo,GA,r,Bongo,Ancien président,1959,"Ancien président du Gabon, renversé en 2023.",f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Brice Oligui Nguema,GA,r,Oligui Nguema,Président,1975,Président du Gabon depuis le coup d'État de 2023.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Pierre-Emerick Aubameyang,GA,r,Aubameyang,Footballeur,1989,Attaquant gabonais.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Pierre-Emerick Aubameyang,GA/FR,r,Aubameyang,Footballeur,1989,Attaquant gabonais.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Adele,GB,s,Adele,Chanteuse,1988,Chanteuse de « Hello ».,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 AJ Tracey,GB,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Alan Carr,GB,r,,Humoriste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -1559,7 +1559,7 @@ Brian Cox,GB,r,Cox,Physicien,1968,Physicien et vulgarisateur.,c,,unverified,,err
 Brian Eno,GB,s,Eno,Musicien,1948,"Père de la musique d'ambiance, producteur de Bowie et de U2.",c,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Brian May,GB,r,May,Guitariste,1947,Guitariste de Queen et astrophysicien.,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Bruce Dickinson,GB,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
-Bukayo Saka,GB,r,Saka,Footballeur,2001,Ailier d'Arsenal.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
+Bukayo Saka,GB/NG,r,Saka,Footballeur,2001,Ailier d'Arsenal.,,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
 Calvin Harris,GB,r,,Artiste,,,f,Q81637,verified,2026-10-26,Q81637 — producteur et DJ écossais de musique électronique (69 pages)
 Cat Stevens,GB,r,,Artiste,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'entities')
 Catherine Middleton,GB,s,Kate Middleton;Princess Kate,,,,f,,unverified,,erreur réseau : Cannot read properties of undefined (reading 'search')
@@ -2655,7 +2655,7 @@ Mikhail Baryshnikov,LV/US,r,Mikhaïl Barychnikov;Baryshnikov,,,,f,,unverified,,
 Abdel Hamid Dbeibah,LY,r,Dbeibah,Premier ministre,1959,Chef du gouvernement d'unité nationale.,f,,unverified,,
 Hisham Matar,LY,r,Matar,Écrivain,1970,Auteur de « Le Retour ».,c,,unverified,,
 Khalifa Haftar,LY,s,Haftar,Maréchal,1943,Chef de l'Armée nationale libyenne.,f,,unverified,,
-Achraf Hakimi,MA,r,Hakimi,Footballeur,1998,Latéral marocain.,,,unverified,,
+Achraf Hakimi,MA/ES,r,Hakimi,Footballeur,1998,Latéral marocain.,,,unverified,,
 Ahmed Soultan,MA,r,,Artiste,,,f,,unverified,,
 Aminatou Haidar,MA,r,Haidar,Militante,1966,Militante sahraouie surnommée la « Gandhi du Sahara ».,b,,unverified,,
 Asmaa Lmnawar,MA,r,,Artiste,,,f,,unverified,,
@@ -2664,7 +2664,7 @@ Dizzy DROS,MA,r,,Artiste,,,f,,unverified,,
 Don Bigg,MA,r,,Artiste,,,f,,unverified,,
 Douzi,MA,r,,Artiste,,,f,,unverified,,
 Fouad Laroui,MA,r,Laroui,Écrivain,1958,Écrivain marocain.,c,,unverified,,
-Hakim Ziyech,MA,r,Ziyech,Footballeur,1993,Milieu marocain.,,,unverified,,
+Hakim Ziyech,MA/NL,r,Ziyech,Footballeur,1993,Milieu marocain.,,,unverified,,
 Hassan Hajjaj,MA,r,Hajjaj,Artiste,1961,Photographe et plasticien.,c,,unverified,,
 Hatim Ammor,MA,r,,Artiste,,,f,,unverified,,
 Hicham El Guerrouj,MA,r,El Guerrouj,,,,f,,unverified,,
@@ -2680,11 +2680,11 @@ Nabil Ayouch,MA,r,Ayouch,Réalisateur,1969,Réalisateur de « Much Loved ».,c,,
 Nass El Ghiwane,MA,r,,Artiste,,,f,,unverified,,
 Nawal El Moutawakel,MA,r,,,,,f,,unverified,,
 Nouhaila Benzina,MA,r,,Footballeuse,1998,Première joueuse voilée en Coupe du monde.,,,unverified,,
-Noussair Mazraoui,MA,r,Mazraoui,,,,f,,unverified,,
+Noussair Mazraoui,MA/NL,r,Mazraoui,,,,f,,unverified,,
 Oumaima Taleb,MA,r,,Artiste,,,f,,unverified,,
 Saad Lamjarred,MA,r,,Artiste,,,f,,unverified,,
 Samira Said,MA,r,,Artiste,,,f,,unverified,,
-Sofyan Amrabat,MA,r,Amrabat,,,,f,,unverified,,
+Sofyan Amrabat,MA/NL,r,Amrabat,,,,f,,unverified,,
 Soufiane El Bakkali,MA,r,,Coureur,1996,Champion olympique du 3000 mètres steeple.,,,unverified,,
 Tahar Ben Jelloun,MA,r,Ben Jelloun,Écrivain,1944,Prix Goncourt 1987.,c,,unverified,,
 Walid Regragui,MA,r,Regragui,,,,f,,unverified,,
@@ -2987,7 +2987,7 @@ Lil Kleine,NL,r,,Artiste,,,f,,unverified,,
 Mark Rutte,NL,r,Rutte,,,,f,,unverified,,
 Martin Garrix,NL,r,Garrix,DJ,1996,DJ révélé à 17 ans avec « Animals ».,f,,unverified,,
 Max Verstappen,NL,s,Verstappen,Pilote de course,1997,Quadruple champion du monde de Formule 1.,,,unverified,,
-Memphis Depay,NL,r,Depay,,,,f,,unverified,,
+Memphis Depay,NL/GH,r,Depay,,,,f,,unverified,,
 Nick & Simon,NL,r,,Artiste,,,f,,unverified,,
 Nikkie de Jager,NL,r,NikkieTutorials,Youtubeuse,,,f,,unverified,,
 Paul Verhoeven,NL,r,Verhoeven,Réalisateur,1938,Réalisateur de « RoboCop » et de « Basic Instinct ».,c,,unverified,,
@@ -3001,7 +3001,7 @@ Snelle,NL,r,,Artiste,,,f,,unverified,,
 Tabitha,NL,r,,Artiste,,,f,,unverified,,
 Tiësto,NL,r,Tiesto,Artiste,,,f,,unverified,,
 Typhoon,NL,r,,Artiste,,,f,,unverified,,
-Virgil van Dijk,NL,s,Van Dijk,Footballeur,1991,Défenseur de Liverpool et capitaine des Pays-Bas.,,,unverified,,
+Virgil van Dijk,NL/SR,s,Van Dijk,Footballeur,1991,Défenseur de Liverpool et capitaine des Pays-Bas.,,,unverified,,
 Wesley Sneijder,NL,r,Sneijder,,,,f,,unverified,,
 Wim Hof,NL,r,Hof,Sportif,1959,"« Iceman », inventeur d'une méthode de respiration et d'immersion dans le froid.",,,unverified,,
 Within Temptation,NL,r,,Artiste,,,f,,unverified,,
@@ -3018,7 +3018,7 @@ Cashmere Cat,NO,r,,Artiste,,,f,,unverified,,
 Cezinando,NO,r,,Artiste,,,f,,unverified,,
 Dagny,NO,r,,Artiste,,,f,,unverified,,
 Dimmu Borgir,NO,r,,Artiste,,,f,,unverified,,
-Erling Haaland,NO,s,Haaland,Footballeur,2000,Buteur de Manchester City.,,,unverified,,
+Erling Haaland,NO/GB,s,Haaland,Footballeur,2000,Buteur de Manchester City.,,,unverified,,
 Girl in Red,NO,r,,Artiste,,,f,,unverified,,
 Hkeem,NO,r,,Artiste,,,f,,unverified,,
 Ihsahn,NO,r,,Artiste,,,f,,unverified,,
@@ -3527,7 +3527,7 @@ Veronica Maggio,SE,r,,Artiste,,,f,,unverified,,
 Victor Lindelöf,SE,r,Lindelof,,,,f,,unverified,,
 Yung Lean,SE,r,,Artiste,,,f,,unverified,,
 Zara Larsson,SE,r,Larsson,Chanteuse,1997,Chanteuse de « Lush Life ».,f,,unverified,,
-Zlatan Ibrahimović,SE,s,Zlatan,Ancien footballeur,1981,"Ancien attaquant, auteur de buts acrobatiques.",,,unverified,,
+Zlatan Ibrahimović,SE/BA/HR,s,Zlatan,Ancien footballeur,1981,"Ancien attaquant, auteur de buts acrobatiques.",,,unverified,,
 A-Do,SG,r,,Artiste,,,f,,unverified,,
 Charlie Lim,SG,r,,Artiste,,,f,,unverified,,
 Dick Lee,SG,r,,Artiste,,,f,,unverified,,
@@ -3716,13 +3716,13 @@ Ezhel,TR,r,,Artiste,,,f,,unverified,,
 Fatih Akın,TR,r,Akin,Réalisateur,1973,Réalisateur de « Head-On ».,c,,unverified,,
 Gökhan Özen,TR,r,,Artiste,,,f,,unverified,,
 Gülşen,TR,r,,Artiste,,,f,,unverified,,
-Hakan Çalhanoğlu,TR,r,Calhanoglu,Footballeur,1994,Milieu de l'Inter.,,,unverified,,
+Hakan Çalhanoğlu,TR/DE,r,Calhanoglu,Footballeur,1994,Milieu de l'Inter.,,,unverified,,
 Hakan Şükür,TR,r,Hakan Sukur,,,,f,,unverified,,
 Haluk Levent,TR,r,,Artiste,,,f,,unverified,,
 Hande Yener,TR,r,,Artiste,,,f,,unverified,,
 İlkay Gündoğan,TR/DE,r,Ilkay Gundogan;Gundogan,,,,f,,unverified,,
 Kenan Doğulu,TR,r,,Artiste,,,f,,unverified,,
-Kenan Yıldız,TR,r,Kenan Yildiz,,,,f,,unverified,,
+Kenan Yıldız,TR/DE,r,Kenan Yildiz,,,,f,,unverified,,
 Kerimcan Durmaz,TR,r,,Artiste,,,f,,unverified,,
 Lvbel C5,TR,r,,Artiste,,,f,,unverified,,
 Mabel Matiz,TR,r,,Artiste,,,f,,unverified,,
@@ -5129,7 +5129,7 @@ Yoshinori Muto,JP,r,,Footballeur,1992,,f,Q15401668,verified,2026-10-22,
 Fermín IV,MX,r,,Chanteur et rappeur,1974,,f,Q1406436,verified,2026-10-22,
 Ram Baran Yadav,NP,r,,Personnalité politique,1948,,f,Q57441,verified,2026-10-22,
 Xanana Gusmão,PT/TL,r,,Écrivain et personnalité politique,1946,,f,Q11509,verified,2026-10-22,
-Rafael Leão,PT,r,,Footballeur,1999,,f,Q30055335,verified,2026-10-22,
+Rafael Leão,PT/AO,r,,Footballeur,1999,,f,Q30055335,verified,2026-10-22,
 Boris Akounine,RU,r,,Écrivain et traducteur,1956,,f,Q125663,verified,2026-10-22,
 Valentina Matvienko,RU,r,,Personnalité politique et gouverneur,1949,,f,Q182654,verified,2026-10-22,
 Natalia Poklonskaïa,RU,r,,Personnalité politique,1980,,f,Q15963668,verified,2026-10-22,
@@ -5377,7 +5377,7 @@ Youssouf Raza Gilani,PK,r,,Personnalité politique et journaliste,1952,,f,Q15205
 Georginio Wijnaldum,NL,r,,Footballeur,1990,,f,Q372379,verified,2026-10-22,
 Paul Wesley,PL,r,,Acteur et personnalité du monde des affaires,1982,,f,Q270149,verified,2026-10-22,
 Ewa Kopacz,PL,r,,Médecin et personnalité politique,1956,,f,Q246216,verified,2026-10-22,
-Renato Sanches,PT,r,,Footballeur,1997,,f,Q18394009,verified,2026-10-22,
+Renato Sanches,PT/CV,r,,Footballeur,1997,,f,Q18394009,verified,2026-10-22,
 Steve Mandanda,CD,r,,Footballeur,1985,,f,Q1924,verified,2026-10-22,
 Petr Fiala,CZ,r,,Personnalité politique et historien,1964,,f,Q3377548,verified,2026-10-22,
 Viktor Zoubkov,RU,r,,Personnalité politique et économiste,1941,,f,Q147425,verified,2026-10-22,
@@ -6013,7 +6013,7 @@ Tony Popović,AU,r,,Entraîneur de football et footballeur,1973,,f,Q361247,verif
 Mitchell Duke,AU,r,,Footballeur,1991,,f,Q5393901,verified,2026-10-22,
 Hermann Maier,AT,r,,Moniteur de ski et skieur alpin ou skieuse alpine,1972,,f,Q1956,verified,2026-10-22,
 Christian Benteke,BE,r,,Footballeur,1990,,f,Q60326,verified,2026-10-22,
-Jérémy Doku,BE,r,,Footballeur,2002,,f,Q59209505,verified,2026-10-22,
+Jérémy Doku,BE/GH,r,,Footballeur,2002,,f,Q59209505,verified,2026-10-22,
 Charles De Ketelaere,BE,r,,Footballeur,2001,,f,Q68607008,verified,2026-10-22,
 Darya Domracheva,BY/RU,r,,Biathlète et entraîneur de biathlon,1986,,f,Q209193,verified,2026-10-22,
 Željko Komšić,BA,r,,Personnalité politique et avocat,1964,,f,Q297825,verified,2026-10-22,
@@ -7518,7 +7518,7 @@ Malalai Joya,AF,r,,Écrivain et personnalité politique,1978,,f,Q253378,verified
 Sima Samar,AF,r,,Personnalité politique et médecin,1957,,f,Q262364,verified,2026-10-22,
 Abdelaziz Djerrad,DZ,r,,Personnalité politique et politologue,1954,,f,Q80100650,verified,2026-10-22,
 Ramy Bensebaïni,DZ,r,,Footballeur,1995,,f,Q17484446,verified,2026-10-22,
-Houssem Aouar,DZ,r,,Footballeur,1998,,f,Q27927442,verified,2026-10-22,
+Houssem Aouar,DZ/FR,r,,Footballeur,1998,,f,Q27927442,verified,2026-10-22,
 Amine Gouiri,DZ,r,,Footballeur,2000,,f,Q30045780,verified,2026-10-22,
 José Manuel Imbamba,AO,r,,Évêque catholique et prêtre catholique,1965,,f,Q1709402,verified,2026-10-22,
 Sultan ben Salmane Al Saoud,SA,r,,Astronaute et personnalité politique,1956,,f,Q379946,verified,2026-10-22,
@@ -8682,7 +8682,7 @@ Migjen Basha,AL,r,,Footballeur,1987,,f,Q1467831,verified,2026-10-22,
 Milot Rashica,AL/XK,r,,Footballeur,1996,,f,Q20744140,verified,2026-10-22,
 Salima Ghezali,DZ,r,,Écrivain et défenseur des droits de l'homme,1958,,f,Q127304,verified,2026-10-22,
 Madjid Bougherra,DZ,r,,Entraîneur de football et footballeur,1982,,f,Q350377,verified,2026-10-22,
-Rayan Aït-Nouri,DZ,r,,Footballeur,2001,,f,Q50825738,verified,2026-10-22,
+Rayan Aït-Nouri,DZ/FR,r,,Footballeur,2001,,f,Q50825738,verified,2026-10-22,
 Adlène Guedioura,DZ,r,,Footballeur,1985,,f,Q358660,verified,2026-10-22,
 Saleh Al-Shehri,SA,r,,Footballeur,1993,,f,Q7403894,verified,2026-10-22,
 Mohammed Al-Owais,SA,r,,Footballeur,1991,,f,Q22677970,verified,2026-10-22,
@@ -14687,8 +14687,8 @@ Thomas Müller,DE,r,,Footballeur,1989,,,,unverified,,
 Toni Kroos,DE,r,,Footballeur,1990,,,,unverified,,
 Joshua Kimmich,DE,r,,Footballeur,1995,,,,unverified,,
 Leon Goretzka,DE,r,,Footballeur,1995,,,,unverified,,
-Antonio Rüdiger,DE,r,,Footballeur,1993,,,,unverified,,
-Jamal Musiala,DE,r,,Footballeur,2003,,,,unverified,,
+Antonio Rüdiger,DE/SL,r,,Footballeur,1993,,,,unverified,,
+Jamal Musiala,DE/NG/GB,r,,Footballeur,2003,,,,unverified,,
 Florian Wirtz,DE,r,,Footballeur,2003,,,,unverified,,
 Kai Havertz,DE,r,,Footballeur,1999,,,,unverified,,
 Marc-André ter Stegen,DE,r,,Footballeur,1992,,,,unverified,,

@@ -4,6 +4,8 @@ on:
     inputs:
       per_country: { description: "Personnes max par pays", default: "120" }
       min_links: { description: "Notoriété minimale (pages Wikipédia)", default: "18" }
+      only: { description: "Pays (codes ISO séparés par des virgules), vide = tous", default: "" }
+      by_job: { description: "Chercher métier par métier (pour les grands pays)", default: "false" }
 permissions:
   contents: write
   pull-requests: write
@@ -16,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: Chercher les personnes les plus notoires, pays par pays
-        run: node scripts/expand.mjs --write --per-country "${{ inputs.per_country }}" --min-links "${{ inputs.min_links }}"
+        run: node scripts/expand.mjs --write --per-country "${{ inputs.per_country }}" --min-links "${{ inputs.min_links }}" ${{ inputs.only != '' && format('--only {0}', inputs.only) || '' }} ${{ inputs.by_job == 'true' && '--by-job' || '' }}
       - name: Contrôler et reconstruire
         run: node scripts/check.mjs && node scripts/build.mjs
       - name: Proposer le résultat dans une demande de fusion

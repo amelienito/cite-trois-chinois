@@ -18,6 +18,7 @@ const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf('--' + n); return i < 0 ? d : (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true); };
 const WRITE = opt('write', false) === true, CREATORS = opt('no-creators', false) !== true;
 const PER = +opt('per-country', 120), MINL = +opt('min-links', 18), MINF = +opt('min-followers', 2000000);
+const BYJOB = opt('by-job', false) === true;
 const ONLY = (opt('only', '') || '').toString().split(',').filter(Boolean);
 const ENDPOINT = process.env.WIKIDATA_SPARQL || 'https://query.wikidata.org/sparql';
 const UA = 'Cite3Chinois-expand/1.0 (elargissement de base de donnees; voir le depot GitHub du projet)';
@@ -33,7 +34,7 @@ async function sparql(query) {
       return (await res.json()).results.bindings;
     } catch (e) { if (attempt === 3) throw e; await sleep(2000 * (attempt + 1)); }
   }
-  return [];
+  throw new Error('délai dépassé');
 }
 const val = (b, k) => b[k]?.value ?? '';
 const qid = u => (u.match(/Q\d+$/) || [''])[0];
@@ -85,9 +86,30 @@ function take(b, iso) {
   found.set(id, e);
 }
 
+
+const JOBS = [['Q937857', 'Footballeur'], ['Q33999', 'Acteur'], ['Q177220', 'Chanteur'], ['Q2252262', 'Rappeur'], ['Q2526255', 'Réalisateur'], ['Q82955', 'Personnalité politique'], ['Q3665646', 'Basketteur'], ['Q10833314', 'Joueur de tennis'], ['Q17125263', 'Vidéaste web'], ['Q245068', 'Humoriste'], ['Q36180', 'Écrivain'], ['Q4610556', 'Mannequin'], ['Q130857', 'DJ'], ['Q947873', 'Animateur de télévision'], ['Q378622', 'Pilote de course'], ['Q10871364', 'Joueur de baseball'], ['Q13382576', 'Rugbyman'], ['Q639669', 'Musicien'], ['Q2405480', 'Acteur de séries'], ['Q1028181', 'Peintre']];
+const jobQuery = (iso, q, minLinks, limit) => `
+SELECT ?p ?pLabel ?links ?dob WHERE {
+  ?p wdt:P106 wd:${q}; wdt:P31 wd:Q5; wikibase:sitelinks ?links; wdt:P27 ?c.
+  ?c wdt:P297 "${iso}".
+  FILTER(?links >= ${minLinks})
+  FILTER NOT EXISTS { ?p wdt:P570 [] }
+  OPTIONAL { ?p wdt:P569 ?dob }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+} ORDER BY DESC(?links) LIMIT ${limit}`;
 const todo = countries.map(c => c.code).filter(c => !ONLY.length || ONLY.includes(c));
 let failed = [];
-for (const iso of todo) {
+if (BYJOB) {
+  for (const iso of todo) {
+    for (const [q, label] of JOBS) {
+      try { (await sparql(jobQuery(iso, q, MINL, 150))).forEach(b => { take(b, iso); const e = found.get(qid(val(b, 'p'))); if (e && !e.job) e.job = label; }); }
+      catch (e) { failed.push(iso + ':' + q); }
+      await sleep(900);
+    }
+    process.stderr.write(`${iso} ${found.size}\r`);
+  }
+}
+for (const iso of (BYJOB ? [] : todo)) {
   // Les grands pays dépassent le délai de Wikidata : on relève le seuil de notoriété jusqu'à obtenir une réponse.
   let ok = false;
   for (const mult of [1, 2, 4]) {
