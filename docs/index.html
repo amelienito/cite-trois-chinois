@@ -299,6 +299,8 @@ label.f { display: block; margin: 12px 0 4px; font-weight: 500; font-size: 11px;
 body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4px; } body.kb .stats, body.kb #runner { display: none; } body.kb .stage { min-height: 90px; } body.kb .dock { padding-top: 6px; padding-bottom: 8px; } body.kb .regbtn { padding: 8px 12px 7px; }
 .menu { max-height: calc(100vh - 80px); max-height: calc(100dvh - 80px); overflow: auto; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+.winmark{font-size:64px;line-height:1;color:var(--gold,#e6c274);text-align:center;margin:4px 0 8px}
+#win-body h2{text-align:center}
 </style>
 </head><body>
 <div id="app">
@@ -374,6 +376,7 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
 
   <div class="modal" id="m-intro" hidden><div class="sheet intro" role="dialog" aria-modal="true" aria-label="Introduction"><svg class="intro-art" viewBox="0 0 240 240" fill="none" stroke="#3f6a8f" stroke-width="1" aria-hidden="true"><circle cx="120" cy="120" r="104"/><circle cx="120" cy="120" r="72" stroke-dasharray="2 5"/><circle cx="120" cy="120" r="38"/><ellipse cx="120" cy="120" rx="104" ry="40"/><ellipse cx="120" cy="120" rx="40" ry="104"/><ellipse cx="120" cy="120" rx="72" ry="104" stroke-opacity=".6"/><line x1="0" y1="120" x2="240" y2="120"/><line x1="120" y1="0" x2="120" y2="240"/><path d="M104 120h-18M136 120h18M120 104v-18M120 136v18" stroke="#d9a441" stroke-width="2"/><circle cx="150" cy="86" r="3.5" fill="#d9a441" stroke="none"/><path d="M150 86l44-34h30" stroke="#d9a441"/></svg><h1 class="quote">«&nbsp;Qui peut citer 3 chinois vivants ici&nbsp;?&nbsp;»</h1><p class="by">demandait Gilles Gressani à LCI.</p><p class="lead">C’est une bonne question que l’on peut étirer afin de tester nos connaissances.</p><ol class="steps"><li><b>01</b><span>Tape le nom d’une personnalité encore vivante.</span></li><li><b>02</b><span>Trois noms complètent un pays.</span></li><li><b>03</b><span>Remplis le plus de pays possible.</span></li></ol><div class="btns"><button class="btn pri" id="intro-go" type="button">Jouer</button></div></div></div>
   <div class="modal" id="m-end" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Score final"><button class="x" type="button" data-close aria-label="Fermer">✕</button><div id="end-body"></div></div></div>
+  <div class="modal" id="m-win" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Victoire"><button class="x" type="button" data-close aria-label="Fermer">✕</button><div id="win-body"></div></div></div>
   <div class="modal" id="m-badges" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Badges"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Badges</h2><div class="bgrid" id="bgrid"></div></div></div>
   <div class="modal" id="m-countries" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Pays"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Tous les pays</h2><input class="find" id="finder" type="text" placeholder="Chercher un pays…" aria-label="Chercher un pays"><div class="clist" id="clist"></div></div></div>
   <div class="modal" id="m-note" hidden><div class="sheet nb" role="dialog" aria-modal="true" aria-label="Mon carnet"><button class="x" type="button" data-close aria-label="Fermer">✕</button><h2>Mon carnet</h2><div id="nb-body"></div></div></div>
@@ -603,6 +606,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     { id: 'c16', n: 'BG', d: 'Remplis 16 pays.', g: 'diamond', c: '#d9a441', t: function () { return Object.keys(L.comp).length >= 16; } },
     { id: 'c25', n: 'Wow', d: 'Remplis 25 pays.', g: 'globe', c: '#e6c274', t: function () { return Object.keys(L.comp).length >= 25; } },
     { id: 'fear', n: 'Peur de rien', d: 'Cumule 5 points de la honte dans la même partie.', g: 'bolt', c: '#2b3440', t: function () { return !!L.fear; } },
+    { id: 'gg', secret: true, n: '', d: '', x: ['Q2l0ZSAzIGNoaW5vaXM=', 'VHJvaXMgQ2hpbm9pcyBqdXN0ZXMuIExlIGpldSBlc3QgZ2FnbsOpLg=='], g: 'crown', c: '#e6c274', t: function () { return !!L.won; } },
     { id: 'pnl', secret: true, n: '', d: '', x: ['Qm9udXMgUE5M', 'Vm91cyBhdmV6IHRhcMOpIFBOTCwgbcOqbWUgc2kgY+KAmWVzdCB1biBncm91cGUu'], g: 'spark', c: '#e6c274', t: function () { return !!L.pnl; } },
     { id: 'ai', n: 'Expertise incontestée', d: 'Un nom absent de la base est confirmé par la vérification automatique.', g: 'spark', c: '#8fb0cc', t: function () { return L.ai >= 1; } },
     { id: 'daily', n: 'Fidèle au poste', d: 'Joue 3 jours différents au Défi du jour.', g: 'calendar', c: '#d9a441', t: function () { return L.days.length >= 3; } },
@@ -970,6 +974,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     halves.forEach(function (c) { paint(c); flash(c); });
     flash(target); paint(target); bump('pl-pts'); bump('pl-streak'); if (newC) bump('pl-countries'); bump('pl-names');
     if (complete && !opts.gift) { FX.big(); burst(pt.x, pt.y, 90, 9); stampText('COMPLET'); buzz([30, 40, 30, 40, 90]); }
+    if (complete && target === 'CN' && !opts.gift && !S.won) { S.won = 1; L.won = 1; setTimeout(showWin, 1100); }
     if (!opts.gift && mult >= 3 && !complete) pop('SÉRIE ×' + mult + ' !', window.innerWidth / 2, window.innerHeight * 0.38);
     if (S.sel) { renderCard(); } else if (!opts.gift && !RM && pathEls[target]) focusOn(target);
     renderPills(); persist(); checkBadges();
@@ -1234,6 +1239,16 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var by = {}; S.names.forEach(function (x) { var k = CONT[x.cc]; if (k) by[k] = (by[k] || 0) + 1; });
     var parts = Object.keys(CNAMES).filter(function (k) { return by[k]; }).map(function (k) { return CNAMES[k] + ' ' + by[k]; });
     return 'Cite 3 chinois\n' + t.names + ' noms · ' + t.countries + ' pays · ' + t.comp + ' complets\n' + fmt(S.pts) + ' pts · meilleure série ' + S.best + '\n' + parts.join(' · ');
+  }
+  function showWin() {
+    var t = totals();
+    $('win-body').innerHTML = '<div class="winmark">三</div><h2>Trois Chinois. Tu as gagné.</h2><p style="color:var(--dim);margin:6px 0 0">Le jeu s’appelait comme ça depuis le début. Tu peux continuer si tu veux, rien ne s’arrête.</p>' +
+      '<div class="endstats"><div class="stat"><b>' + fmt(S.pts) + '</b><small>points</small></div><div class="stat"><b>' + t.names + '</b><small>noms</small></div><div class="stat"><b>' + t.countries + '</b><small>pays</small></div></div>' +
+      '<div class="btns"><button class="btn pri" id="w-cont" type="button">Continuer</button><button class="btn" id="w-end" type="button">Voir mon score</button></div>';
+    FX.big(); buzz([40, 40, 40, 40, 120]);
+    open('m-win');
+    $('w-cont').onclick = function () { close('m-win'); };
+    $('w-end').onclick = function () { close('m-win'); openEnd(); };
   }
   function openEnd() {
     var t = totals();

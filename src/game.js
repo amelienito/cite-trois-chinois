@@ -215,6 +215,7 @@
     { id: 'c16', n: 'BG', d: 'Remplis 16 pays.', g: 'diamond', c: '#d9a441', t: function () { return Object.keys(L.comp).length >= 16; } },
     { id: 'c25', n: 'Wow', d: 'Remplis 25 pays.', g: 'globe', c: '#e6c274', t: function () { return Object.keys(L.comp).length >= 25; } },
     { id: 'fear', n: 'Peur de rien', d: 'Cumule 5 points de la honte dans la même partie.', g: 'bolt', c: '#2b3440', t: function () { return !!L.fear; } },
+    { id: 'gg', secret: true, n: '', d: '', x: ['Q2l0ZSAzIGNoaW5vaXM=', 'VHJvaXMgQ2hpbm9pcyBqdXN0ZXMuIExlIGpldSBlc3QgZ2FnbsOpLg=='], g: 'crown', c: '#e6c274', t: function () { return !!L.won; } },
     { id: 'pnl', secret: true, n: '', d: '', x: ['Qm9udXMgUE5M', 'Vm91cyBhdmV6IHRhcMOpIFBOTCwgbcOqbWUgc2kgY+KAmWVzdCB1biBncm91cGUu'], g: 'spark', c: '#e6c274', t: function () { return !!L.pnl; } },
     { id: 'ai', n: 'Expertise incontestée', d: 'Un nom absent de la base est confirmé par la vérification automatique.', g: 'spark', c: '#8fb0cc', t: function () { return L.ai >= 1; } },
     { id: 'daily', n: 'Fidèle au poste', d: 'Joue 3 jours différents au Défi du jour.', g: 'calendar', c: '#d9a441', t: function () { return L.days.length >= 3; } },
@@ -582,6 +583,7 @@
     halves.forEach(function (c) { paint(c); flash(c); });
     flash(target); paint(target); bump('pl-pts'); bump('pl-streak'); if (newC) bump('pl-countries'); bump('pl-names');
     if (complete && !opts.gift) { FX.big(); burst(pt.x, pt.y, 90, 9); stampText('COMPLET'); buzz([30, 40, 30, 40, 90]); }
+    if (complete && target === 'CN' && !opts.gift && !S.won) { S.won = 1; L.won = 1; setTimeout(showWin, 1100); }
     if (!opts.gift && mult >= 3 && !complete) pop('SÉRIE ×' + mult + ' !', window.innerWidth / 2, window.innerHeight * 0.38);
     if (S.sel) { renderCard(); } else if (!opts.gift && !RM && pathEls[target]) focusOn(target);
     renderPills(); persist(); checkBadges();
@@ -846,6 +848,16 @@
     var by = {}; S.names.forEach(function (x) { var k = CONT[x.cc]; if (k) by[k] = (by[k] || 0) + 1; });
     var parts = Object.keys(CNAMES).filter(function (k) { return by[k]; }).map(function (k) { return CNAMES[k] + ' ' + by[k]; });
     return 'Cite 3 chinois\n' + t.names + ' noms · ' + t.countries + ' pays · ' + t.comp + ' complets\n' + fmt(S.pts) + ' pts · meilleure série ' + S.best + '\n' + parts.join(' · ');
+  }
+  function showWin() {
+    var t = totals();
+    $('win-body').innerHTML = '<div class="winmark">三</div><h2>Trois Chinois. Tu as gagné.</h2><p style="color:var(--dim);margin:6px 0 0">Le jeu s’appelait comme ça depuis le début. Tu peux continuer si tu veux, rien ne s’arrête.</p>' +
+      '<div class="endstats"><div class="stat"><b>' + fmt(S.pts) + '</b><small>points</small></div><div class="stat"><b>' + t.names + '</b><small>noms</small></div><div class="stat"><b>' + t.countries + '</b><small>pays</small></div></div>' +
+      '<div class="btns"><button class="btn pri" id="w-cont" type="button">Continuer</button><button class="btn" id="w-end" type="button">Voir mon score</button></div>';
+    FX.big(); buzz([40, 40, 40, 40, 120]);
+    open('m-win');
+    $('w-cont').onclick = function () { close('m-win'); };
+    $('w-end').onclick = function () { close('m-win'); openEnd(); };
   }
   function openEnd() {
     var t = totals();
