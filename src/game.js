@@ -31,16 +31,30 @@
     e = { id: 'e' + ENTRIES.length, name: o.name, cc: cc, tier: o.tier || 'r', aliases: o.aliases || [], job: o.job || '', year: o.year || '', hint: o.hint || '', tags: o.tags || '', ai: !!o.ai };
     ENTRIES.push(e); BYNORM[key] = e;
     addKey(key, e);
-    if (key.indexOf(' ') > 0) addKey(key.replace(/ /g, ''), e);
     var toks = key.split(' ');
     if (toks.length > 1) {
-      addKey(sortTokens(key), e);
       var last = toks[toks.length - 1];
       if (last.length >= 4) (LAST[last] = LAST[last] || []).indexOf(e) < 0 && LAST[last].push(e);
     }
-    e.aliases.forEach(function (a) { var ka = norm(a); addKey(ka, e); if (ka.indexOf(' ') > 0) addKey(ka.replace(/ /g, ''), e); });
+    var aks = e.aliases.map(function (a) { var ka = norm(a); addKey(ka, e); return ka; });
+    if (lazyVar) PEND.push([e, key, aks]); else addVariants(e, key, aks);
     return e;
   }
+  // Variantes (sans espaces, mots dans le désordre) : construites après l'affichage, ou à la première recherche.
+  var PEND = [], pendI = 0, lazyVar = true;
+  function addVariants(e, key, aks) {
+    if (key.indexOf(' ') > 0) { addKey(key.replace(/ /g, ''), e); addKey(sortTokens(key), e); }
+    aks.forEach(function (ka) { if (ka.indexOf(' ') > 0) addKey(ka.replace(/ /g, ''), e); });
+  }
+  function drainVariants(deadline) {
+    var t0 = Date.now();
+    while (pendI < PEND.length) {
+      var x = PEND[pendI++]; addVariants(x[0], x[1], x[2]);
+      if (deadline && (pendI & 255) === 0 && (deadline.timeRemaining ? deadline.timeRemaining() < 3 : Date.now() - t0 > 12)) break;
+    }
+    if (pendI < PEND.length) { if (deadline) later(drainVariants); } else PEND = [];
+  }
+  function later(fn) { if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 1500 }); else setTimeout(function () { fn({}); }, 30); }
   DB.forEach(function (r) {
     addEntry({ name: r[0], cc: r[1].split('/'), tier: r[2], aliases: (r[3] || '').split(';').filter(Boolean), job: r[4], year: r[5], hint: r[6], tags: r[7] });
   });
@@ -52,6 +66,7 @@
     var e = addEntry({ name: d[0], cc: d[1].split('/'), tier: 'r', aliases: (d[2] || '').split(';').filter(Boolean), job: d[3], hint: d[4] });
     if (e) e.dead = true;
   });
+  lazyVar = false; later(drainVariants);
   var EXCL = {};
   (window.__EXCL || []).forEach(function (x) {
     [x[0]].concat((x[1] || '').split(';').filter(Boolean)).forEach(function (n) { var k = norm(n); if (k) { EXCL[k] = 1; EXCL[sortTokens(k)] = 1; } });
@@ -78,6 +93,7 @@
   }
   /* -> {entry, fuzzy, via} | {ambig:[...]} | null */
   function lookup(input, sel) {
+    if (pendI < PEND.length) drainVariants(null);
     var n = norm(input);
     if (n.length < 2) return null;
     var hit = INDEX[n] || INDEX[sortTokens(n)] || (n.indexOf(' ') > 0 && INDEX[n.replace(/ /g, '')]);

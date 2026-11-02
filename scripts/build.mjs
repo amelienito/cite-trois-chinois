@@ -14,17 +14,17 @@ const NAMES = {}, CONT = {}, TIER = {};
 countries.forEach(c => { NAMES[c.code] = c.name_fr; CONT[c.code] = c.continent; TIER[c.code] = c.tier; });
 // Les lignes « rejected » (personne décédée, erreur…) ne sont jamais embarquées dans le jeu.
 const DB = parseCSV(read('data/people.csv')).filter(r => r.status !== 'rejected')
-  .map(r => [r.name, r.countries, r.tier || 'r', r.aliases, r.job, r.birth_year, r.hint, r.tags]);
+  .map(r => { const a = [r.name, r.countries, r.tier || 'r', r.aliases, r.job, r.birth_year, r.hint, r.tags]; while (a.length > 2 && !a[a.length - 1]) a.pop(); return a; });
 const HIST = parseCSV(read('data/history.csv')).filter(r => r.status !== 'rejected')
   .map(r => [r.name, r.countries, r.era, r.job, r.hint, r.alive]);
 const EXCL = [];
 const DEAD = parseCSV(read('data/dead.csv')).map(r => [r.name, r.countries, r.aliases, r.job, r.hint]);
 const data = 'window.__HIST=' + JSON.stringify(HIST) + ';window.__NAMES=' + JSON.stringify(NAMES) + ';window.__CONT=' + JSON.stringify(CONT) +
-  ';window.__TIER=' + JSON.stringify(TIER) + ';window.__DB=' + JSON.stringify(DB) + ';window.__EXCL=' + JSON.stringify(EXCL) + ';window.__DEAD=' + JSON.stringify(DEAD) + ';';
+  ';window.__TIER=' + JSON.stringify(TIER) + ';window.__DB=JSON.parse(document.getElementById("db").textContent)' + ';window.__EXCL=' + JSON.stringify(EXCL) + ';window.__DEAD=' + JSON.stringify(DEAD) + ';';
 const shim = '<script>window.jsVectorMap={addMap:function(n,d){window.__WORLD=d;}};</script>\n<script>/* Carte : jsvectormap (MIT, voir vendor/LICENSE-jsvectormap) */\n' + read('vendor/world.js') + '</script>\n';
 const html = '<!doctype html>\n<html lang="fr" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   (repo ? '<meta name="repo" content="' + repo + '">' : '') + '\n' + read('src/head.html') + '</head><body>\n' + read('src/body.html') + shim +
-  '<script>' + data + '</script>\n<script>\n' + read('src/game.js') + '</script>\n</body></html>\n';
+  '<script type="application/json" id="db">' + JSON.stringify(DB).replace(/</g, '\\u003c') + '</script>\n<script>' + data + '</script>\n<script>\n' + read('src/game.js') + '</script>\n</body></html>\n';
 fs.mkdirSync(path.join(root, 'docs'), { recursive: true });
 fs.writeFileSync(path.join(root, 'docs/index.html'), html);
 console.log(`docs/index.html : ${DB.length} personnes, ${HIST.length} figures historiques, ${countries.length} pays`);
