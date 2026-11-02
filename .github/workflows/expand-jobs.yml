@@ -1,0 +1,29 @@
+name: Muscler la base (métier par métier, tous les pays)
+on:
+  workflow_dispatch:
+    inputs:
+      only: { description: "Pays (codes ISO séparés par des virgules), vide = tous", default: "" }
+      scale: { description: "Multiplicateur des quotas", default: "1" }
+permissions:
+  contents: write
+jobs:
+  expand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Footballeurs, musique, acteurs, politique, sport, web, autres
+        run: node scripts/expand-jobs.mjs --write --scale "${{ inputs.scale }}" ${{ inputs.only != '' && format('--only {0}', inputs.only) || '' }}
+      - name: Origines, contrôle et reconstruction
+        run: node scripts/origins.mjs --write && node scripts/check.mjs && node scripts/build.mjs
+      - name: Pousser le résultat sur une branche
+        run: |
+          git config user.name "expand-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout -b muscle-$(date +%F-%H%M)
+          git add data docs
+          git diff --cached --quiet && { echo "Rien à ajouter"; exit 0; }
+          git commit -m "Base musclée métier par métier (Wikidata)"
+          git push -u origin HEAD

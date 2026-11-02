@@ -637,43 +637,81 @@
     var out = ((ent.claims || {})[prop] || []).filter(function (c) { return c.mainsnak && c.mainsnak.datavalue && (!noEnded || !(c.qualifiers && c.qualifiers.P582)); });
     return out.map(function (c) { return c.mainsnak.datavalue.value; });
   }
-  function askWiki(text) {
-    return askWikiIn(text, 'fr').then(function (a) { return a && a.no ? askWikiIn(text, 'en') : a; });
+  // Territoires : rattachés au pays souverain (Porto Rico -> États-Unis, Guadeloupe -> France…).
+  var TERR = { PR: 'US', GU: 'US', VI: 'US', AS: 'US', MP: 'US', GP: 'FR', MQ: 'FR', GF: 'FR', RE: 'FR', YT: 'FR', NC: 'FR', PF: 'FR', PM: 'FR', BL: 'FR', MF: 'FR', WF: 'FR', HK: 'CN', MO: 'CN', GL: 'DK', FO: 'DK', AW: 'NL', CW: 'NL', SX: 'NL', BQ: 'NL', BM: 'GB', KY: 'GB', VG: 'GB', AI: 'GB', MS: 'GB', TC: 'GB', GI: 'GB', FK: 'GB', IM: 'GB', JE: 'GB', GG: 'GB', CK: 'NZ', NU: 'NZ', AX: 'FI' };
+  function isoOk(iso) { iso = typeof iso === 'string' ? iso.toUpperCase() : ''; if (NAMES[iso]) return iso; var t = TERR[iso]; return t && NAMES[t] ? t : ''; }
+  function wdLabel(e) { var L = e.labels || {}; return ((L.fr || L.mul || L.en) || {}).value || ''; }
+  function wdNames(e) {
+    var L = e.labels || {}, A = e.aliases || {}, out = [];
+    ['fr', 'mul', 'en'].forEach(function (l) { if (L[l]) out.push(L[l].value); (A[l] || []).forEach(function (x) { out.push(x.value); }); });
+    return out;
   }
-  function askWikiIn(text, lang) {
-    var q = encodeURIComponent(text.slice(0, 80)), want = norm(text).replace(/ /g, '');
-    return wdGet('action=wbsearchentities&type=item&language=' + lang + '&uselang=' + lang + '&limit=10&search=' + q).then(function (res) {
-      var ids = (res.search || []).map(function (x) { return x.id; });
+  // Pays d'une personne : sélection sportive, puis nationalités, sinon pays du lieu de naissance.
+  function wdCountries(e) {
+    var cs = claimIds(e, 'P27', true).map(function (x) { return x.id; });
+    if (!cs.length) cs = claimIds(e, 'P27').map(function (x) { return x.id; });
+    var sport = claimIds(e, 'P1532').map(function (x) { return x.id; }).slice(0, 1);
+    var birth = cs.length ? [] : claimIds(e, 'P19').map(function (x) { return x.id; }).slice(0, 1);
+    var ids = [];
+    cs.slice(0, 4).concat(sport, birth).forEach(function (q) { if (q && ids.indexOf(q) < 0) ids.push(q); });
+    if (!ids.length) return Promise.resolve([]);
+    return wdGet('action=wbgetentities&props=claims&ids=' + ids.join('|')).then(function (cd) {
+      var E = cd.entities || {}, cc = [], more = [];
+      function iso(q) { return E[q] ? isoOk(claimIds(E[q], 'P297')[0]) : ''; }
+      sport.concat(cs).forEach(function (q) { var c = iso(q); if (c && cc.indexOf(c) < 0) cc.push(c); });
+      if (!cc.length && birth.length && E[birth[0]]) { var c0 = iso(birth[0]); if (c0) cc.push(c0); else more = claimIds(E[birth[0]], 'P17').map(function (x) { return x.id; }).slice(0, 1); }
+      if (cc.length || !more.length) return cc;
+      return wdGet('action=wbgetentities&props=claims&ids=' + more[0]).then(function (d2) { var ce = (d2.entities || {})[more[0]]; var c = ce ? isoOk(claimIds(ce, 'P297')[0]) : ''; return c ? [c] : []; });
+    });
+  }
+  // Recherche en direct : libellés (fr, en) + recherche plein texte limitée aux humains, pour accepter
+  // les noms de famille seuls (« Griezmann »), les surnoms et les petites fautes de frappe.
+  function askWiki(text) {
+    var t = text.slice(0, 80), qs = encodeURIComponent(t), want = norm(t), wantC = want.replace(/ /g, '');
+    var toks = want.split(' ').filter(function (x) { return x.length >= 2; });
+    var maxTypo = wantC.length >= 10 ? 2 : (wantC.length >= 5 ? 1 : 0);
+    function srch(lang) { return wdGet('action=wbsearchentities&type=item&language=' + lang + '&uselang=' + lang + '&limit=10&search=' + qs).then(function (r) { return (r.search || []).map(function (x) { return x.id; }); }, function () { return null; }); }
+    var full = wdGet('action=query&list=search&srnamespace=0&srlimit=12&srsearch=' + encodeURIComponent(t + ' haswbstatement:P31=Q5')).then(function (r) { return ((r.query || {}).search || []).map(function (x) { return x.title; }); }, function () { return null; });
+    return Promise.all([srch('fr'), srch('en'), full]).then(function (lists) {
+      if (lists.every(function (l) { return l === null; })) return { err: 'network' };
+      var ids = [];
+      lists.forEach(function (l) { (l || []).forEach(function (id) { if (/^Q\d+$/.test(id) && ids.indexOf(id) < 0) ids.push(id); }); });
+      ids = ids.slice(0, 40);
       if (!ids.length) return { no: true };
-      return wdGet('action=wbgetentities&props=labels|aliases|descriptions|claims|sitelinks&languages=fr|en&ids=' + ids.join('|')).then(function (d) {
-        var ents = d.entities || {}, best = null, dead = null;
+      return wdGet('action=wbgetentities&props=labels|aliases|descriptions|claims|sitelinks&languages=fr|mul|en&ids=' + ids.join('|')).then(function (d) {
+        var ents = d.entities || {}, cands = [];
         ids.forEach(function (id) {
-          var e = ents[id]; if (!e || best) return;
-          var inst = claimIds(e, 'P31').map(function (v) { return v.id; });
-          if (inst.indexOf('Q5') < 0) return;
-          var lab = (e.labels.fr || e.labels.en || {}).value || '';
-          var names = [lab, (e.labels.en || {}).value];
-          ((e.aliases && (e.aliases.fr || [])) || []).concat((e.aliases && e.aliases.en) || []).forEach(function (a) { names.push(a.value); });
-          var hit = names.some(function (n) { return n && norm(n).replace(/ /g, '') === want; });
-          if (!hit) return;
-          var links = Object.keys(e.sitelinks || {}).length;
-          if (links < 1) return;
-          if (claimIds(e, 'P570').length) { if (!dead) dead = lab; return; }
+          var e = ents[id]; if (!e || !e.claims) return;
+          if (claimIds(e, 'P31').map(function (x) { return x.id; }).indexOf('Q5') < 0) return;
+          var lab = wdLabel(e); if (!lab) return;
+          var m = 0;
+          wdNames(e).forEach(function (n) {
+            var k = norm(n), kc = k.replace(/ /g, '');
+            if (kc === wantC) m = 3;
+            else if (m < 2 && wantC.length >= 4 && toks.length && toks.every(function (x) { return (' ' + k + ' ').indexOf(' ' + x + ' ') >= 0; })) m = 2;
+            else if (m < 1 && maxTypo && lev(wantC, kc, maxTypo) <= maxTypo) m = 1;
+          });
+          if (!m) return;
           var by = claimIds(e, 'P569')[0], year = by && by.time ? +by.time.slice(1, 5) : 0;
-          if (year > 2007) return;
-          best = { id: id, e: e, name: lab, year: year, desc: (e.descriptions.fr || e.descriptions.en || {}).value || '' };
+          var ds = e.descriptions || {};
+          cands.push({ e: e, name: lab, m: m, links: Object.keys(e.sitelinks || {}).length, dead: claimIds(e, 'P570').length > 0, year: year, desc: (ds.fr || ds.en || {}).value || '' });
         });
-        if (!best) return dead ? { dead: dead } : { no: true };
-        var cs = claimIds(best.e, 'P27', true).map(function (v) { return v.id; });
-        if (!cs.length) cs = claimIds(best.e, 'P27').map(function (v) { return v.id; });
-        cs = cs.slice(0, 3);
-        if (!cs.length) return { no: true };
-        return wdGet('action=wbgetentities&props=claims&ids=' + cs.join('|')).then(function (cd) {
-          var cc = [];
-          cs.forEach(function (q) { var ce = (cd.entities || {})[q]; if (!ce) return; var iso = claimIds(ce, 'P297')[0]; if (typeof iso === 'string' && NAMES[iso] && cc.indexOf(iso) < 0) cc.push(iso); });
+        if (!cands.length) return { no: true };
+        cands.sort(function (a, b) { return b.m - a.m || b.links - a.links; });
+        var bestM = cands[0].m, same = cands.filter(function (c) { return c.m === bestM; });
+        var alive = same.filter(function (c) { return !c.dead && c.year <= 2007; });
+        var top = same[0];
+        // Une personne disparue très connue l'emporte, sauf homonyme vivant assez connu.
+        if (top.dead) { if (alive.length && alive[0].links >= Math.max(5, top.links * 0.3)) top = alive[0]; else return { dead: top.name, exact: bestM === 3 }; }
+        if (top.year > 2007) return { no: true };
+        if (bestM < 3) {
+          if (top.links < (bestM === 2 ? 5 : 3)) return { no: true };
+          if (alive.length > 1 && alive[1].links * 1.6 > top.links) return { ambig: alive.slice(0, 4).map(function (c) { return c.name; }) };
+        }
+        return wdCountries(top.e).then(function (cc) {
           if (!cc.length) return { no: true };
-          var job = best.desc ? best.desc.charAt(0).toUpperCase() + best.desc.slice(1, 60) : '';
-          return { ok: true, name: best.name.replace(/\s+/g, ' ').trim(), cc: cc.slice(0, 2), job: job, year: best.year ? String(best.year) : '' };
+          var job = top.desc ? top.desc.charAt(0).toUpperCase() + top.desc.slice(1, 60) : '';
+          return { ok: true, name: top.name.replace(/\s+/g, ' ').trim(), cc: cc.slice(0, 3), job: job, year: top.year ? String(top.year) : '', fuzzy: bestM < 3 };
         });
       });
     }).catch(function () { return { err: 'network' }; });
@@ -682,7 +720,7 @@
     return askSample(text).then(function (a) {
       if (a && a.ok) return a;
       return askWiki(text).then(function (w) {
-        if (w.ok || w.dead) return w;
+        if (w.ok || w.dead || w.ambig) return w;
         return (a && a.no) ? a : w;
       });
     });
@@ -759,24 +797,31 @@
     if (norm(text) === 'pnl') { L.pnl = 1; checkBadges(); }
     var r = lookup(text, S.sel);
     if (blocked(text)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
-    if (r && r.entry) { accept(r.entry, { fuzzy: r.fuzzy }); return; }
-    if (r && r.ambig) {
-      say('Plusieurs personnes portent ce nom. Laquelle ?', 'info', '<div class="suggest">' + r.ambig.map(function (e) { return '<button type="button" data-name="' + esc(e.name) + '">' + esc(e.name) + '</button>'; }).join('') + '</div>');
-      return;
+    if (r && r.entry && !r.fuzzy) { accept(r.entry, {}); return; }
+    var local = r && r.entry ? r.entry : null;
+    function suggest(names) {
+      say('Plusieurs personnes peuvent correspondre. Laquelle ?', 'info', '<div class="suggest">' + names.map(function (n) { return '<button type="button" data-name="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>');
     }
+    if (r && r.ambig) { suggest(r.ambig.map(function (e) { return e.name; })); return; }
     if (aiBusy) return;
     aiBusy = true; $('go-free').disabled = true;
     say('<span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…', 'info');
     askAI(text).then(function (a) {
       aiBusy = false; $('go-free').disabled = false;
-      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
-      if (a.ok && blocked(a.name)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
-      if (a.ok) {
+      function take(a, fuzzy) {
+        if (blocked(a.name)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
         var again = lookup(a.name, S.sel);
         var e = (again && again.entry && norm(again.entry.name) === norm(a.name)) ? again.entry : null;
         if (!e) { learn(a); e = BYNORM[norm(a.name)]; }
-        FX.ai(); accept(e, { ai: true }); return;
+        if (!e) { miss('« ' + esc(text) + ' » : pays introuvable pour cette personne. Tu peux la réclamer.', text); return; }
+        FX.ai(); accept(e, { ai: true, fuzzy: fuzzy });
       }
+      if (a.ok && !a.fuzzy) { take(a, false); return; }
+      if (a.dead && a.exact) { say('Cette personne nous a quittés.', 'info'); return; }
+      if (local) { accept(local, { fuzzy: true }); return; }
+      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
+      if (a.ok) { take(a, true); return; }
+      if (a.ambig) { suggest(a.ambig); return; }
       if (a.no) { miss('« ' + esc(text) + ' » : personne célèbre et vivante introuvable. Vérifie l’orthographe, ou réclame-la.', text); return; }
       if (a.err === 'rate_limited') { say('Trop de vérifications d’un coup. Réessaie dans un instant, ou réclame le nom.', 'no', '<button type="button" class="link" data-claim="' + esc(text) + '">Réclamer « ' + esc(text) + ' »</button>'); return; }
       miss('« ' + esc(text) + ' » n’est pas dans la base, et je n’ai pas pu le vérifier automatiquement.', text);
@@ -1138,7 +1183,7 @@
   var seen = false; try { seen = localStorage.getItem('c3c3-intro') === '1'; } catch (e) {}
   if (!seen) showIntro();
   if (matchMedia('(pointer:fine)').matches && seen) setTimeout(function () { $('in-free').focus(); }, 50);
-  window.__c3c = { lookup: lookup, ENTRIES: ENTRIES, get S() { return S; }, get D() { return D; }, dailyPool: dailyPool, pickRounds: pickRounds, norm: norm, submitFree: submitFree };
+  window.__c3c = { askWiki: askWiki, lookup: lookup, ENTRIES: ENTRIES, get S() { return S; }, get D() { return D; }, dailyPool: dailyPool, pickRounds: pickRounds, norm: norm, submitFree: submitFree };
 
 
 /* ---------- détente + succès chronométrés ---------- */
