@@ -553,20 +553,39 @@
     for (var i = 0; i < entry.cc.length; i++) if (cs(entry.cc[i]).n < 3) return entry.cc[i];
     return null;
   }
-  // Les cinq premiers noms entrés dans la partie rapportent un bonus, une seule fois.
-  function firstFive() { if (S.b5) return 0; S.typed = (S.typed || 0) + 1; if (S.typed < 5) return 0; S.b5 = 1; return 1312; }
+  // Paliers selon le nombre de noms entrés dans la partie : ×2 pour les trois premiers, puis quelques clins d'œil.
+  function typedBonus() {
+    S.typed = (S.typed || 0) + 1; var n = S.typed;
+    if (n <= 3) return { x2: true, chip: '×2 pour bien démarrer' };
+    if (n === 13) return { add: 1312, chip: '+1312' };
+    if (n === 38) return { add: 280, chip: '+280 · bonus chauvinisme grenoblois' };
+    if (n === 75) return { add: 750, chip: '75e' };
+    return null;
+  }
+  // Trois noms qui font perdre la partie, sans autre explication.
+  var GACHE = { 'bernard henri levy': 1, 'bhl': 1, 'raphael glucksmann': 1, 'raphael glucksman': 1, 'glucksmann': 1, 'glucksman': 1, 'bernard arnault': 1 };
+  function spoils(s) { return !!GACHE[norm(s || '')]; }
+  function gameLost() {
+    FX.bad(); shake(); buzz([60, 60, 200]);
+    fresh(); S.saved = true; persist(); paintAll(); renderCard(); renderPills();
+    $('end-body').innerHTML = '<h2 style="text-align:center;margin:18px 0 6px">T’as tout gâché…</h2><div class="btns" style="justify-content:center"><button class="btn pri" id="g-new" type="button">Nouvelle partie</button></div>';
+    open('m-end');
+    $('g-new').onclick = function () { close('m-end'); say('Nouvelle partie. À toi !', 'info'); };
+  }
   function accept(entry, opts) {
     opts = opts || {};
+    if (spoils(entry.name)) { if (!opts.gift || opts.typed) gameLost(); return; }
     var key = norm(entry.name); missRun = 0;
     if (entry.dead) return say('Cette personne nous a quittés.', 'info');
     if (S.used[key]) return say('Déjà cité : ' + entry.name + '.', 'info');
     var target = opts.force || chooseTarget(entry, S.sel);
     if (!target) {
       var home = entry.cc[0];
-      var b5 = opts.gift ? 0 : firstFive(), xs = [];
-      S.used[key] = 1; S.pts += 25 + b5; S.names.push({ name: entry.name, cc: home, pts: 25 + b5, ai: !!entry.ai, over: true }); L.names++;
-      var pt0 = screenOf(home) || mid(); FX.tap(); pop('+' + fmt(25 + b5), pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
-      if (b5) xs.push({ t: '+1312 · cinq premiers noms', k: 'big' }); if (opts.ai) xs.push({ t: 'nom vérifié', k: 'violet' });
+      var tb = opts.gift ? null : typedBonus(), xs = [], rab = 25;
+      if (tb) { if (tb.x2) rab *= 2; if (tb.add) rab += tb.add; xs.push({ t: tb.chip, k: 'big' }); }
+      S.used[key] = 1; S.pts += rab; S.names.push({ name: entry.name, cc: home, pts: rab, ai: !!entry.ai, over: true }); L.names++;
+      var pt0 = screenOf(home) || mid(); FX.tap(); pop('+' + fmt(rab), pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
+      if (opts.ai) xs.push({ t: 'nom vérifié', k: 'violet' });
       say('<span class="flag">' + flag(home) + '</span>' + esc(entry.name) + ' (' + esc(nameOf(home)) + ') : pays déjà complet, +25 de rab.', 'ok', xs.length ? chipsHtml(xs) : '');
       renderPills(); persist(); checkBadges(); return;
     }
@@ -586,9 +605,9 @@
     if (/[gb]/.test(entry.tags || '')) { pts += 50; L.brave++; chips.push({ t: '+50 figure de courage', k: 'green' }); }
     else if (/c/.test(entry.tags || '')) { pts += 50; L.brave++; chips.push({ t: '+50 créateur·rice marquant·e', k: 'green' }); }
     /* Points de la honte : un pour la personnalité (étiquette « h »), un pour chaque réponse dans Israël. Netanyahou en vaut donc deux. */
-    var shameTag = /h/.test(entry.tags || ''), shameIL = entry.cc.indexOf('IL') >= 0, shameN = (shameTag ? 1 : 0) + (shameIL ? 1 : 0), shame = shameN > 0;
+    var shameW = ((entry.tags || '').match(/h/g) || []).length, shameTag = shameW > 0, shameIL = entry.cc.indexOf('IL') >= 0, shameN = shameW + (shameIL ? 1 : 0), shame = shameN > 0;
     if (shameIL) chips.push({ t: '🫠 point de la honte · le pays', k: 'violet' });
-    if (shameTag) chips.push({ t: '🫠 point de la honte' + (shameIL ? ' · la personnalité' : ''), k: 'violet' });
+    if (shameTag) chips.push({ t: (shameW > 1 ? '🫠🫠 double point de la honte' : '🫠 point de la honte') + (shameIL ? ' · la personnalité' : ''), k: 'violet' });
     else if (!shameIL && /n/.test(entry.tags || '')) chips.push({ t: '📰 à la une', k: 'violet' });
     if (!opts.gift && shameN) { S.honteTotal = (S.honteTotal || 0) + shameN; L.honte = (L.honte || 0) + shameN; if (S.honteTotal >= 5) L.fear = 1; }
     o.n += used; o.names.push({ name: entry.name, rare: rare, slots: used, ai: !!entry.ai });
@@ -600,7 +619,7 @@
     /* Origines : les autres pays de la personne reçoivent une demi-case et 50 points. */
     var halves = [];
     if (!opts.gift) entry.cc.forEach(function (c) { if (c !== target && cs(c).n < 3) { var h = cs(c); h.n = Math.min(3, h.n + 0.5); h.names.push({ name: entry.name, slots: 0.5, half: true }); pts += 50; halves.push(c); if (h.n >= 3) L.comp[c] = 1; if (CONT[c]) L.touched[CONT[c]] = 1; L.touchedCc[c] = 1; } });
-    var b5 = opts.gift ? 0 : firstFive(); if (b5) { pts += b5; chips.push({ t: '+1312 · cinq premiers noms', k: 'big' }); }
+    var tb = opts.gift ? null : typedBonus(); if (tb) { if (tb.x2) pts *= 2; if (tb.add) pts += tb.add; chips.push({ t: tb.chip, k: 'big' }); }
     pts = Math.round(pts); S.pts += pts;
     S.names.push({ name: entry.name, cc: target, pts: pts, ai: !!entry.ai });
     if (/^(rihanna|lionel messi|tex)$/.test(key)) L.seen = 1;
@@ -778,7 +797,7 @@
   var BYCC = null;
   /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
   function unlock(n, mix, skip) {
-    if (!BYCC) { ensureAll(); BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
+    if (!BYCC) { ensureAll(); BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job || spoils(e.name)) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length && (!skip || skip.indexOf(c) < 0); });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
@@ -831,6 +850,7 @@
     text = text.replace(/\s+/g, ' ').trim();
     if (text.length < 2) return;
     if (norm(text) === 'pnl') { L.pnl = 1; checkBadges(); }
+    if (spoils(text)) { gameLost(); return; }
     var r = lookup(text, S.sel);
     if (blocked(text)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
     if (r && r.entry && !r.fuzzy && !r.weak) { accept(r.entry, {}); return; }
@@ -1076,6 +1096,7 @@
     var open = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0], home = g.cc.filter(function (x) { return NAMES[x]; })[0];
     if (!open && !home) return null;
     var before = S.pts;
+    if (spoils(g.name)) { accept(g, { gift: true, typed: true }); return null; }
     if (open) accept(g, { gift: true, force: open }); else accept(g, { gift: true }); // pays complets : petit rab de points
     var it = { name: g.name, cc: open || home, over: !open }; noteUnlocked([it], S.pts - before); renderPills(); persist();
     return it;
@@ -1091,6 +1112,7 @@
   function submitDaily(text) {
     if (D.solved || D.lost || D.done) return;
     text = text.replace(/\s+/g, ' ').trim(); if (text.length < 2) return;
+    if (spoils(text)) { gameLost(); return; }
     var ans = entryById(D.list[D.i]), r = lookup(text, null), round = D.i;
     if (r && r.entry && (r.entry === ans || (!r.fuzzy && !r.weak))) { dailyGuess(r.entry, ans); return; }
     if (r && r.ambig && r.ambig.indexOf(ans) >= 0) { resolveRound(true, ans); return; }
