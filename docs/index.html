@@ -1125,7 +1125,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
         var alive = same.filter(function (c) { return !c.dead && c.year <= 2007; });
         var top = same[0];
         // Une personne disparue très connue l'emporte, sauf homonyme vivant assez connu.
-        if (top.dead) { if (alive.length && alive[0].links >= Math.max(5, top.links * 0.3)) top = alive[0]; else return { dead: top.name, exact: bestM === 3 }; }
+        if (top.dead) { if (alive.length && alive[0].links >= (bestM < 3 ? 3 : Math.max(5, top.links * 0.3))) top = alive[0]; else return { dead: top.name, exact: bestM === 3 }; }
         if (top.year > 2007) return { no: true };
         if (bestM < 3) {
           if (top.links < (bestM === 2 ? 5 : 3)) return { no: true };
