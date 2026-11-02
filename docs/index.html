@@ -1434,7 +1434,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
       $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') + (last.bonus && last.bonus.length ? revealHtml('En prime, deux autres pays', last.bonus, 0, true) : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
-      setTimeout(function () { try { $('d-next').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }, 80);
+      [60, 400].forEach(function (ms) { setTimeout(function () { var b = $('d-next'), d = document.querySelector('.dock'); if (!b || !d) return; var r = b.getBoundingClientRect(), dr = d.getBoundingClientRect(); if (r.bottom > dr.bottom - 6) d.scrollTop += r.bottom - dr.bottom + 12; }, ms); });
     }
   }
   function nextRound() { D.i++; D.lvl = 0; D.solved = false; D.lost = false; D.msg = ''; D.wrong = 0; if (D.i >= D.list.length) D.done = true; saveDaily(); renderDaily(); if (!D.done && matchMedia('(pointer:fine)').matches) $('in-daily').focus(); }
