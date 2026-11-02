@@ -1066,7 +1066,7 @@
   }
   /* Une tentative ratée au défi, mais pas encore tapée dans les noms libres : elle y est acceptée. */
   function dailyTry(g) {
-    if (D.practice || g.hist || g.dead || blocked(g.name) || S.used[norm(g.name)]) return null;
+    if (g.hist || g.dead || blocked(g.name) || S.used[norm(g.name)]) return null;
     var c = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
     if (!c) return null;
     var before = S.pts; accept(g, { gift: true, force: c });
@@ -1080,13 +1080,30 @@
     else { D.lost = true; D.streak = 0; FX.bad(); shake(); }
     dailyReveal(e); if (ok) { var rr = D.rounds[D.rounds.length - 1]; rr.gift = dailyGift(e); rr.bonus = dailyBonus(e); } saveDaily(); renderDaily(); checkBadges();
   }
+  var dBusy = false;
   function submitDaily(text) {
     if (D.solved || D.lost || D.done) return;
-    var ans = entryById(D.list[D.i]), r = lookup(text, null);
-    if (!r || (!r.entry && !r.ambig)) { $('d-feed').innerHTML = '<div class="msg info">Je ne connais pas ce nom. Réessaie, ça ne coûte rien.</div>'; return; }
-    if (r.ambig) { $('d-feed').innerHTML = '<div class="msg info">Plusieurs personnes portent ce nom, donne le nom complet.</div>'; return; }
-    if (r.entry === ans) { resolveRound(true, ans); return; }
-    var g = r.entry, chips = [];
+    text = text.replace(/\s+/g, ' ').trim(); if (text.length < 2) return;
+    var ans = entryById(D.list[D.i]), r = lookup(text, null), round = D.i;
+    if (r && r.entry && (r.entry === ans || (!r.fuzzy && !r.weak))) { dailyGuess(r.entry, ans); return; }
+    if (r && r.ambig && r.ambig.indexOf(ans) >= 0) { resolveRound(true, ans); return; }
+    // Pas dans la base (ou pas sûr) : on vérifie en ligne, comme en noms libres.
+    if (dBusy) return; dBusy = true;
+    $('d-feed').innerHTML = '<div class="msg info"><span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…</div>';
+    askAI(text).then(function (a) {
+      dBusy = false;
+      if (D.solved || D.lost || D.done || D.i !== round) return;
+      var e = null;
+      if (a.ok && !blocked(a.name)) { e = BYNORM[norm(a.name)]; if (!e) { learn(a); e = BYNORM[norm(a.name)]; } }
+      if (!e && r && r.entry) e = r.entry;
+      if (e) { dailyGuess(e, ans); return; }
+      var m = a.ambig || (r && r.ambig) ? 'Plusieurs personnes portent ce nom, donne le nom complet.' : a.dead ? 'Cette personne nous a quittés. Réessaie, ça ne coûte rien.' : 'Je ne connais pas ce nom. Réessaie, ça ne coûte rien.';
+      $('d-feed').innerHTML = '<div class="msg info">' + m + '</div>';
+    });
+  }
+  function dailyGuess(g, ans) {
+    if (g === ans) { resolveRound(true, ans); return; }
+    var chips = [];
     if (g.cc.some(function (c) { return ans.cc.indexOf(c) >= 0; })) chips.push({ t: 'même pays', k: 'green' });
     if (g.job && ans.job && norm(g.job).split(' ')[0] === norm(ans.job).split(' ')[0]) chips.push({ t: 'même métier', k: 'green' });
     D.wrong++;
