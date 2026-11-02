@@ -71,72 +71,57 @@ const tierOf = Object.fromEntries(countries.map(c => [c.code, c.tier || 'C']));
 const known = new Set(), byWd = new Set(people.map(r => r.wikidata).filter(Boolean));
 [...people, ...dead].forEach(r => { known.add(norm(r.name)); (r.aliases || '').split(';').forEach(a => a && known.add(norm(a))); });
 
-// 1. Correspondance code ISO -> éléments Wikidata (pays + territoires rattachés).
-log('Correspondance des pays…');
-const isoRows = await sparql('SELECT ?c ?iso WHERE { ?c wdt:P297 ?iso }');
-const qOfIso = {}, isoOfQ = {};
-isoRows.forEach(b => {
-  let iso = v(b, 'iso'); const q = qid(v(b, 'c')); iso = tierOf[iso] ? iso : TERR[iso]; if (!iso || !tierOf[iso]) return;
-  (qOfIso[iso] = qOfIso[iso] || []).push(q); isoOfQ[q] = iso;
-});
-log(Object.keys(qOfIso).length + ' pays reconnus');
-
-// 2. Phase 1 : par pays (et par famille pour les grands pays).
+// 1-2. Phase 1 : une requête mondiale par famille de métiers, sur QLever (moteur SPARQL rapide
+// sur les données Wikidata). Le service officiel expire sur les grands pays.
+const QLEVER = process.env.QLEVER || 'https://qlever.cs.uni-freiburg.de/api/wikidata';
+async function qlever(query) {
+  for (let a = 0; a < 4; a++) {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 600000);
+    try {
+      const res = await fetch(QLEVER, { method: 'POST', signal: ctl.signal, headers: { 'User-Agent': UA, Accept: 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ query }) });
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + (await res.text()).slice(0, 300));
+      return (await res.json()).results.bindings;
+    } catch (e) { log('  QLever : ' + e.message); if (a === 3) throw e; await sleep(10000 * (a + 1)); }
+    finally { clearTimeout(to); }
+  }
+}
+const PFX = 'PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wikibase: <http://wikiba.se/ontology#>\n';
 const found = new Map(); // id -> { cc:Set, sport:Set, links, year, job, cat }
 const pool = {}; // iso -> cat -> [ids]
-const JOB2CAT = {}; Object.entries(CATS).forEach(([c, d]) => Object.keys(d.q).forEach(j => { JOB2CAT[j] = JOB2CAT[j] || c; }));
-function add(b, iso, cat) {
+const mapIso = iso => tierOf[iso] ? iso : (TERR[iso] && tierOf[TERR[iso]] ? TERR[iso] : '');
+function add(b, cat) {
   const id = qid(v(b, 'p')); if (!id || byWd.has(id)) return;
-  cat = cat || JOB2CAT[qid(v(b, 'job'))]; if (!cat) return;
+  const iso = mapIso(v(b, 'iso')); if (!iso || (ONLY.length && !ONLY.includes(iso))) return;
+  const links = +v(b, 'links') || 0; if (links < FLOOR[tierOf[iso] || 'C']) return;
   const y = /^(\d{4})/.exec(v(b, 'dob')); if (y && +y[1] > 2007) return; // pas de mineurs
   const job = CATS[cat].q[qid(v(b, 'job'))] || '';
   const e = found.get(id) || { cc: new Set(), sport: new Set(), links: 0, year: '', job: '', cat };
-  e.cc.add(iso); e.links = Math.max(e.links, +v(b, 'links') || 0);
+  e.cc.add(iso); e.links = Math.max(e.links, links);
   if (y && +y[1] >= 1900) e.year = e.year || y[1];
-  if (!e.job || cat === 'foot') { e.job = job || e.job; e.cat = e.cat || cat; }
-  const sp = isoOfQ[qid(v(b, 'sp'))]; if (sp) e.sport.add(sp);
+  if (!e.job || cat === 'foot') { e.job = job || e.job; }
+  const sp = mapIso(v(b, 'sp')); if (sp) e.sport.add(sp);
   found.set(id, e);
   ((pool[iso] = pool[iso] || {})[cat] = pool[iso][cat] || []).push(id);
 }
-const q = (iso, jobs, floor, limit) => `
-SELECT ?p ?job ?links ?dob ?sp WHERE {
-  VALUES ?c { ${qOfIso[iso].map(x => 'wd:' + x).join(' ')} }
+const qq = jobs => PFX + `SELECT ?p ?job ?links ?iso ?dob ?sp WHERE {
   VALUES ?job { ${jobs.map(x => 'wd:' + x).join(' ')} }
-  ?p wdt:P27 ?c; wdt:P106 ?job; wikibase:sitelinks ?links.
-  FILTER(?links >= ${floor})
-  FILTER NOT EXISTS { ?p wdt:P570 [] }
+  ?p wdt:P106 ?job .
+  ?p wikibase:sitelinks ?links .
+  FILTER(?links >= 4)
+  ?p wdt:P27 ?c . ?c wdt:P297 ?iso .
+  MINUS { ?p wdt:P570 ?d }
   OPTIONAL { ?p wdt:P569 ?dob }
-  OPTIONAL { ?p wdt:P1532 ?sp }
-} ORDER BY DESC(?links) LIMIT ${limit}`;
-const todo = countries.map(c => c.code).filter(c => qOfIso[c] && (!ONLY.length || ONLY.includes(c)));
+  OPTIONAL { ?p wdt:P1532 ?spc . ?spc wdt:P297 ?sp }
+}`;
 const failed = [];
 const t0 = Date.now();
-for (const iso of todo) {
-  const t = tierOf[iso] || 'C';
-  if (t === 'C') {
-    // Petits pays : une seule requête pour toutes les familles.
-    const jobs = Object.keys(JOB2CAT), lim = Math.round(Object.values(CATS).reduce((n, d) => n + d.quota[2], 0) * SCALE * 3);
-    let ok = false;
-    for (const mult of [1, 1.5, 2.5]) {
-      try { (await sparql(q(iso, jobs, Math.round(FLOOR.C * mult), lim))).forEach(b => add(b, iso, null)); ok = true; break; }
-      catch (e) { await sleep(4000); }
-    }
-    if (!ok) failed.push(iso);
-    await sleep(700);
-    log(`${iso} (C) : ${found.size} personnes en tout · ${Math.round((Date.now() - t0) / 60000)} min`);
-    continue;
-  }
-  for (const [cat, def] of Object.entries(CATS)) {
-    const jobs = Object.keys(def.q), quota = Math.round(def.quota[TIDX[t]] * SCALE);
-    let ok = false;
-    for (const mult of [1, 1.5, 2.5]) {
-      try { (await sparql(q(iso, jobs, Math.round(FLOOR[t] * mult), quota * 3))).forEach(b => add(b, iso, cat)); ok = true; break; }
-      catch (e) { await sleep(4000); }
-    }
-    if (!ok) failed.push(iso + ':' + cat);
-    await sleep(700);
-  }
-  log(`${iso} (${t}) : ${found.size} personnes en tout · ${Math.round((Date.now() - t0) / 60000)} min`);
+for (const [cat, def] of Object.entries(CATS)) {
+  try {
+    const rows = await qlever(qq(Object.keys(def.q)));
+    rows.forEach(b => add(b, cat));
+    log(`${cat} : ${rows.length} lignes · ${found.size} personnes en tout · ${Math.round((Date.now() - t0) / 1000)} s`);
+  } catch (e) { failed.push(cat); }
+  await sleep(2000);
 }
 
 // 3. Sélection : par pays et par famille, les plus notoires jusqu'au quota.
