@@ -1042,6 +1042,7 @@
       $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') + (last.bonus && last.bonus.length ? revealHtml('En prime, deux autres pays', last.bonus, 0, true) : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
+      setTimeout(function () { try { $('d-next').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }, 80);
     }
   }
   function nextRound() { D.i++; D.lvl = 0; D.solved = false; D.lost = false; D.msg = ''; D.wrong = 0; if (D.i >= D.list.length) D.done = true; saveDaily(); renderDaily(); if (!D.done && matchMedia('(pointer:fine)').matches) $('in-daily').focus(); }
@@ -1067,10 +1068,11 @@
   /* Une tentative ratée au défi, mais pas encore tapée dans les noms libres : elle y est acceptée. */
   function dailyTry(g) {
     if (g.hist || g.dead || blocked(g.name) || S.used[norm(g.name)]) return null;
-    var c = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
-    if (!c) return null;
-    var before = S.pts; accept(g, { gift: true, force: c });
-    var it = { name: g.name, cc: c }; noteUnlocked([it], S.pts - before); renderPills(); persist();
+    var open = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0], home = g.cc.filter(function (x) { return NAMES[x]; })[0];
+    if (!open && !home) return null;
+    var before = S.pts;
+    if (open) accept(g, { gift: true, force: open }); else accept(g, { gift: true }); // pays complets : petit rab de points
+    var it = { name: g.name, cc: open || home, over: !open }; noteUnlocked([it], S.pts - before); renderPills(); persist();
     return it;
   }
   function resolveRound(ok, e) {
@@ -1108,7 +1110,7 @@
     if (g.job && ans.job && norm(g.job).split(' ')[0] === norm(ans.job).split(' ')[0]) chips.push({ t: 'même métier', k: 'green' });
     D.wrong++;
     var tried = dailyTry(g);
-    if (tried) chips.push({ t: 'ajouté à tes noms libres · ' + nameOf(tried.cc), k: 'violet' });
+    if (tried) chips.push({ t: 'ajouté à tes noms libres · ' + nameOf(tried.cc) + (tried.over ? ' (pays complet, +25)' : ''), k: 'violet' });
     if (D.lvl >= NCLUE - 1) { D.msg = ''; resolveRound(false, ans); return; }
     D.lvl++; FX.bad(); shake();
     D.msg = '<div class="msg no">Ce n’est pas ' + esc(g.name) + '. Indice suivant débloqué.</div>' + (chips.length ? chipsHtml(chips) : '');

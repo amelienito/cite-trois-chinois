@@ -68,7 +68,7 @@ button { cursor: pointer; }
 .ico.end { background: var(--acc); color: var(--on-acc); border-color: var(--acc); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 600; }
 
 /* carte */
-.stage { position: relative; flex: 1 1 0; min-height: 170px; z-index: 0; }
+.stage { position: relative; flex: 1 1 0; min-height: 110px; z-index: 0; }
 #mapwrap { position: absolute; inset: 0; }
 #map { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 #map.drag { cursor: grabbing; }
@@ -105,7 +105,7 @@ button { cursor: pointer; }
 .card .x:hover { color: var(--ink); }
 
 /* console de jeu */
-.dock { padding: 10px 14px 14px; padding-bottom: max(14px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--night) 22%); position: relative; z-index: 6; border-top: 1px solid var(--line); }
+.dock { max-height: 74vh; max-height: 74dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px 14px 14px; padding-bottom: max(14px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--night) 22%); position: relative; z-index: 6; border-top: 1px solid var(--line); }
 .tabs { display: flex; gap: 0; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
 .tab { border: 0; border-bottom: 2px solid transparent; background: none; padding: 6px 14px 7px; font: 600 15px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: -1px; }
 .tab.on { color: var(--ink); border-bottom-color: var(--acc); }
@@ -1434,6 +1434,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
       $('d-feed').innerHTML = (D.solved ? '<div class="msg ok">' + flag(e.cc[0]) + ' ' + esc(e.name) + ' · +' + last.pts + ' pts' + '</div>' + (last.gift && last.gift.cc ? '<div class="chips"><span class="chip violet">ajouté à ta carte des noms libres · ' + esc(nameOf(last.gift.cc)) + '</span></div>' : '') + (last.bonus && last.bonus.length ? revealHtml('En prime, deux autres pays', last.bonus, 0, true) : '') : '<div class="msg no">C’était ' + flag(e.cc[0]) + ' ' + esc(e.name) + '</div>') +
         '<div class="msg info" style="font-weight:500">' + esc(e.job) + ' · ' + esc(e.hint) + '</div><div class="sub"><button class="go" id="d-next" type="button">' + (D.i + 1 >= n ? 'Voir le score' : 'Suivante') + '</button></div>';
       $('d-next').onclick = nextRound;
+      setTimeout(function () { try { $('d-next').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} }, 80);
     }
   }
   function nextRound() { D.i++; D.lvl = 0; D.solved = false; D.lost = false; D.msg = ''; D.wrong = 0; if (D.i >= D.list.length) D.done = true; saveDaily(); renderDaily(); if (!D.done && matchMedia('(pointer:fine)').matches) $('in-daily').focus(); }
@@ -1459,10 +1460,11 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   /* Une tentative ratée au défi, mais pas encore tapée dans les noms libres : elle y est acceptée. */
   function dailyTry(g) {
     if (g.hist || g.dead || blocked(g.name) || S.used[norm(g.name)]) return null;
-    var c = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0];
-    if (!c) return null;
-    var before = S.pts; accept(g, { gift: true, force: c });
-    var it = { name: g.name, cc: c }; noteUnlocked([it], S.pts - before); renderPills(); persist();
+    var open = g.cc.filter(function (x) { return NAMES[x] && cs(x).n < 3; })[0], home = g.cc.filter(function (x) { return NAMES[x]; })[0];
+    if (!open && !home) return null;
+    var before = S.pts;
+    if (open) accept(g, { gift: true, force: open }); else accept(g, { gift: true }); // pays complets : petit rab de points
+    var it = { name: g.name, cc: open || home, over: !open }; noteUnlocked([it], S.pts - before); renderPills(); persist();
     return it;
   }
   function resolveRound(ok, e) {
@@ -1500,7 +1502,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (g.job && ans.job && norm(g.job).split(' ')[0] === norm(ans.job).split(' ')[0]) chips.push({ t: 'même métier', k: 'green' });
     D.wrong++;
     var tried = dailyTry(g);
-    if (tried) chips.push({ t: 'ajouté à tes noms libres · ' + nameOf(tried.cc), k: 'violet' });
+    if (tried) chips.push({ t: 'ajouté à tes noms libres · ' + nameOf(tried.cc) + (tried.over ? ' (pays complet, +25)' : ''), k: 'violet' });
     if (D.lvl >= NCLUE - 1) { D.msg = ''; resolveRound(false, ans); return; }
     D.lvl++; FX.bad(); shake();
     D.msg = '<div class="msg no">Ce n’est pas ' + esc(g.name) + '. Indice suivant débloqué.</div>' + (chips.length ? chipsHtml(chips) : '');
