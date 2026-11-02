@@ -1316,3 +1316,95 @@
   }, 3000);
 }
 })();
+
+/* ---------- Radio Music Discovery : les morceaux du site, lus dans un petit lecteur ---------- */
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var box = $('radio'), btn = $('b-radio');
+  if (!box || !btn) return;
+  var SITE = 'https://amelienito.github.io/music-discovery/';
+  var list = null, order = [], i = 0, player = null, ready = false, tryAlt = false, loading = null;
+  function ytId(u) { var m = /(?:v=|youtu\.be\/|embed\/)([\w-]{11})/.exec(u || ''); return m ? m[1] : ''; }
+  function loadList() {
+    if (loading) return loading;
+    loading = new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = SITE + 'data.js'; s.async = true;
+      s.onload = function () {
+        var src = []; try { src = typeof MORCEAUX !== 'undefined' ? MORCEAUX : []; } catch (e) {}
+        list = src.filter(function (m) { return m && ytId(m.lien); });
+        list.length ? res(list) : rej(new Error('vide'));
+      };
+      s.onerror = function () { rej(new Error('réseau')); };
+      document.head.appendChild(s);
+    });
+    loading.catch(function () { loading = null; });
+    return loading;
+  }
+  function loadYT() {
+    return new Promise(function (res) {
+      if (window.YT && window.YT.Player) return res();
+      var prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = function () { if (prev) try { prev(); } catch (e) {} res(); };
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) { var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); }
+    });
+  }
+  function shuffle(n) { var a = []; for (var k = 0; k < n; k++) a.push(k); for (k = n - 1; k > 0; k--) { var j = Math.floor(Math.random() * (k + 1)), t = a[k]; a[k] = a[j]; a[j] = t; } return a; }
+  function cur() { return list[order[i % order.length]]; }
+  function show(m) {
+    $('r-title').textContent = m.titre || '';
+    $('r-artist').textContent = m.artiste || '';
+    $('r-note').textContent = m.note || '';
+  }
+  function play() {
+    var m = cur(); if (!m) return;
+    tryAlt = false; show(m);
+    var id = ytId(m.lien);
+    if (!player) {
+      player = new YT.Player('radio-yt', { width: 200, height: 200, videoId: id, playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: function (e) { ready = true; vol(); try { e.target.playVideo(); } catch (x) {} },
+          onStateChange: function (e) { if (e.data === 0) next(); },
+          onError: function () {
+            var m2 = cur();
+            if (!tryAlt && m2 && m2.secours && ytId(m2.secours.lien)) { tryAlt = true; player.loadVideoById(ytId(m2.secours.lien)); return; }
+            setTimeout(next, 400);
+          }
+        } });
+    } else if (ready) { player.loadVideoById(id); vol(); }
+  }
+  function vol() { var m = cur(); try { player.setVolume(Math.round(100 * Math.min(1, Math.max(0.1, +(m && m.volume) || 1)))); } catch (e) {} }
+  function next() { i++; play(); }
+  function open() {
+    box.hidden = false; btn.querySelector('small').textContent = '■';
+    $('r-title').textContent = 'Chargement…'; $('r-artist').textContent = ''; $('r-note').textContent = '';
+    Promise.all([loadList(), loadYT()]).then(function () {
+      if (box.hidden) return;
+      if (!order.length) { order = shuffle(list.length); i = 0; }
+      play();
+    }).catch(function () {
+      $('r-title').textContent = 'La radio ne répond pas.'; $('r-artist').textContent = 'Réessaie plus tard, ou va sur le site.';
+    });
+  }
+  function close() {
+    box.hidden = true; btn.querySelector('small').textContent = '▶';
+    try { if (player && ready) player.stopVideo(); } catch (e) {}
+  }
+  ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'click', 'dblclick'].forEach(function (ev) { box.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true }); });
+  btn.addEventListener('click', function () { if (box.hidden) open(); else close(); });
+  $('r-x').onclick = close;
+  $('r-next').onclick = function () { if (list && ready) next(); };
+  // Déplacer la radio en la tenant par son bandeau.
+  var drag = null;
+  $('r-drag').addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    drag = { x: e.clientX, y: e.clientY, l: box.offsetLeft, t: box.offsetTop }; try { e.target.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  $('r-drag').addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var p = box.parentElement, l = drag.l + e.clientX - drag.x, t = drag.t + e.clientY - drag.y;
+    l = Math.max(0, Math.min(p.clientWidth - box.offsetWidth, l)); t = Math.max(0, Math.min(p.clientHeight - 60, t));
+    box.style.left = l + 'px'; box.style.top = t + 'px';
+  });
+  ['pointerup', 'pointercancel'].forEach(function (ev) { $('r-drag').addEventListener(ev, function () { drag = null; }); });
+})();

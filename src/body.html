@@ -11,16 +11,26 @@
       <button class="ico" id="b-menu" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
     </div>
     <nav class="menu" id="menu" hidden>
-      <button class="mi" id="b-help" type="button">Règles du jeu</button>
-      <button class="mi" id="b-badges" type="button">Succès <small id="badge-n">0/0</small></button>
-      <button class="mi" id="b-notebook" type="button">Mon carnet</button>
+      <p class="mh">Partie</p>
       <button class="mi" id="b-countries" type="button">Choisir un pays</button>
-      <button class="mi" id="b-runner" type="button" aria-pressed="false">Écran de détente <small>off</small></button>
-      <p class="note">J’avais pas les droits pour le vrai Subway Surfers</p>
-      <button class="mi" id="b-sound" type="button">Son <small>fort</small></button>
+      <button class="mi" id="b-notebook" type="button">Mon carnet</button>
+      <button class="mi" id="b-badges" type="button">Succès <small id="badge-n">0/0</small></button>
+      <button class="mi end" id="b-end" type="button">Terminer la partie</button>
+      <p class="mh">Réglages</p>
+      <div class="mrow">
+        <button class="mi" id="b-sound" type="button">Son <small>fort</small></button>
+        <button class="mi" id="b-runner" type="button" aria-pressed="false">Détente <small>off</small></button>
+      </div>
+      <p class="note">Détente : j’avais pas les droits pour le vrai Subway Surfers</p>
+      <p class="mh">Aide</p>
+      <button class="mi" id="b-help" type="button">Règles du jeu</button>
       <button class="mi" id="b-claim" type="button">Un nom refusé à tort ?</button>
       <button class="mi" id="b-admin" type="button" hidden>Réclamations</button>
-      <button class="mi end" id="b-end" type="button">Terminer la partie</button>
+      <p class="mh">Ailleurs</p>
+      <button class="mi" id="b-radio" type="button">Radio Music Discovery <small>▶</small></button>
+      <a class="mi" href="https://amelienito.github.io/" target="_blank" rel="noopener">Les autres créations <small>↗</small></a>
+      <a class="mi" href="https://amelienito.github.io/fun-facts/" target="_blank" rel="noopener">Fun facts <small>↗</small></a>
+      <a class="mi" href="https://www.onsenbranle.fr" target="_blank" rel="noopener">onsenbranle.fr <small>↗</small></a>
     </nav>
   </header>
 
@@ -32,6 +42,14 @@
       <div class="regions" id="regions" hidden><button type="button" data-r="world" class="on">Monde</button><button type="button" data-r="EU">Europe</button><button type="button" data-r="AF">Afrique</button><button type="button" data-r="AS">Asie</button><button type="button" data-r="NA">Amérique N.</button><button type="button" data-r="SA">Amérique S.</button><button type="button" data-r="OC">Océanie</button><button type="button" data-r="rand">⚄ Hasard</button></div>
       <div class="stats" id="stats" hidden></div>
       <div id="runner" hidden><small>Écran de détente</small><canvas id="rn" width="52" height="92"></canvas></div>
+      <div class="radio" id="radio" hidden>
+        <div class="r-yt"><div id="radio-yt"></div></div>
+        <div class="r-info">
+          <div class="r-head" id="r-drag"><small>Music Discovery</small><button type="button" id="r-x" aria-label="Fermer la radio">✕</button></div>
+          <b id="r-title">…</b><span id="r-artist"></span><i id="r-note"></i>
+          <div class="r-btns"><button type="button" id="r-next">Suivant ⏭</button><a id="r-site" href="https://amelienito.github.io/music-discovery/" target="_blank" rel="noopener">Le site ↗</a></div>
+        </div>
+      </div>
       <div class="zoom"><button id="z-in" type="button" aria-label="Zoom avant">+</button><button id="z-out" type="button" aria-label="Zoom arrière">−</button><button id="z-reset" type="button" aria-label="Recentrer">⌂</button></div>
     </div>
     <div class="card" id="card" hidden></div>
