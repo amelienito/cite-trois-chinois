@@ -796,12 +796,18 @@
   /* ---------- Coup de pouce : 10 noms dans 10 pays, aux trois quarts des points, sans toucher à la série ---------- */
   var BYCC = null;
   /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
-  function unlock(n, mix, skip) {
+  function unlock(n, mix, skip, ordre) {
     if (!BYCC) { ensureAll(); BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job || spoils(e.name)) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length && (!skip || skip.indexOf(c) < 0); });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
-    if (mix) {
+    if (ordre === 'hard' || ordre === 'soft') {
+      // 'hard' : les pays les plus difficiles d'abord ; 'soft' : on écarte les pays trop techniques (rang C)
+      var rang = { C: 0, B: 1, A: 2 };
+      if (ordre === 'soft') open = open.filter(function (c) { return TIER[c] !== 'C'; });
+      var rk = function (c) { return rang[TIER[c]] === undefined ? 0 : rang[TIER[c]]; };
+      open = open.map(function (c) { return [c, rk(c) + Math.random() * 0.9]; }).sort(function (a, b) { return a[1] - b[1]; }).map(function (a) { return a[0]; });
+    } else if (mix) {
       // un mélange de pays faciles (A), moyens (B) et difficiles (C)
       var g = { A: [], B: [], C: [] }; open.forEach(function (c) { (g[TIER[c]] || g.C).push(c); });
       var order = ['C', 'B', 'A', 'C', 'B', 'A', 'C', 'C', 'B', 'A'], mixed = [];
@@ -835,9 +841,9 @@
     say('Bonus PNL', 'ok', revealHtml('Dans la légende', done, done.pts));
     lightUp(done); lastSubmit = Date.now(); renderPills(); persist(); checkBadges();
   }
-  function boost() {
+  function boost(ordre) {
     if (mode !== 'free') return;
-    var done = unlock(10);
+    var done = unlock(10, false, null, ordre);
     if (!done.length) { say('Plus rien à débloquer : tous les pays sont complets.', 'info'); return; }
     FX.big(); burst(window.innerWidth / 2, window.innerHeight * 0.35, 30, 7);
     showRegion('world'); setRegBtn('world');
@@ -1182,7 +1188,7 @@
     var b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
-    else if (b.hasAttribute('data-boost')) boost();
+    else if (b.hasAttribute('data-boost')) boost(b.getAttribute('data-boost') === 'hard' || b.getAttribute('data-boost') === 'soft' ? b.getAttribute('data-boost') : null);
     else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
   $('b-claim').onclick = function () { openClaim(''); };
@@ -1314,7 +1320,8 @@
     'Les pays les moins cités rapportent davantage de points. Quitter l’Europe et l’Amérique du Nord est souvent plus rentable qu’il n’y paraît.'
   ];
   var lastSubmit = Date.now(), lastOffer = 0, lastAct = Date.now(), talked = { 0: [], 1: [] }, nudges = 0;
-  ['keydown', 'pointerdown', 'input'].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+  var lastUser = Date.now();
+  ['keydown', 'pointerdown', 'input'].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = lastUser = Date.now(); }, true); });
   function nextTalk(list, key) {
     var u = talked[key]; if (u.length >= list.length) u.length = 0;
     var i; do { i = Math.floor(Math.random() * list.length); } while (u.indexOf(i) >= 0);
@@ -1330,6 +1337,19 @@
     if (offer) lastOffer = now;
     say(esc(msg), 'info', offer ? BOOST_BTN : '');
   }, 2000);
+
+  /* Longtemps sans rien taper, même après l'offre « Débloquer 10 noms » : on propose de démarrer par les pays les plus difficiles,
+     ou, au contraire, d'écarter les pays trop techniques. */
+  var lastHard = 0;
+  setInterval(function () {
+    if (mode !== 'free' || document.hidden || (!lastOffer && !nudges)) return;
+    var now = Date.now();
+    if (now - lastSubmit < 90000 || now - lastUser < 60000 || now - lastHard < 180000) return;
+    if (document.querySelector('.modal:not([hidden])') || !$('menu').hidden || $('in-free').value) return;
+    lastHard = now; lastAct = now + 30000;   // pas de phrase d’ambiance par-dessus pendant un moment
+    say('Toujours bloqué ? Je peux débloquer dix noms en commençant par les pays les plus durs, ou en laissant de côté les pays trop techniques.', 'info',
+      '<div class="boosts"><button type="button" class="boost" data-boost="hard">Les plus durs d’abord</button><button type="button" class="boost" data-boost="soft">Sans les pays trop techniques</button></div>');
+  }, 5000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
   var mark = null;
