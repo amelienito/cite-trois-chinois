@@ -553,6 +553,8 @@
     for (var i = 0; i < entry.cc.length; i++) if (cs(entry.cc[i]).n < 3) return entry.cc[i];
     return null;
   }
+  // Les cinq premiers noms entrés dans la partie rapportent un bonus, une seule fois.
+  function firstFive() { if (S.b5) return 0; S.typed = (S.typed || 0) + 1; if (S.typed < 5) return 0; S.b5 = 1; return 1312; }
   function accept(entry, opts) {
     opts = opts || {};
     var key = norm(entry.name); missRun = 0;
@@ -561,9 +563,11 @@
     var target = opts.force || chooseTarget(entry, S.sel);
     if (!target) {
       var home = entry.cc[0];
-      S.used[key] = 1; S.pts += 25; S.names.push({ name: entry.name, cc: home, pts: 25, ai: !!entry.ai, over: true }); L.names++;
-      var pt0 = screenOf(home) || mid(); FX.tap(); pop('+25', pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
-      say('<span class="flag">' + flag(home) + '</span>' + esc(entry.name) + ' (' + esc(nameOf(home)) + ') : pays déjà complet, +25 de rab.', 'ok', opts.ai ? chipsHtml([{ t: 'nom vérifié', k: 'violet' }]) : '');
+      var b5 = opts.gift ? 0 : firstFive(), xs = [];
+      S.used[key] = 1; S.pts += 25 + b5; S.names.push({ name: entry.name, cc: home, pts: 25 + b5, ai: !!entry.ai, over: true }); L.names++;
+      var pt0 = screenOf(home) || mid(); FX.tap(); pop('+' + fmt(25 + b5), pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
+      if (b5) xs.push({ t: '+1312 · cinq premiers noms', k: 'big' }); if (opts.ai) xs.push({ t: 'nom vérifié', k: 'violet' });
+      say('<span class="flag">' + flag(home) + '</span>' + esc(entry.name) + ' (' + esc(nameOf(home)) + ') : pays déjà complet, +25 de rab.', 'ok', xs.length ? chipsHtml(xs) : '');
       renderPills(); persist(); checkBadges(); return;
     }
     var o = cs(target), need = entry.tier === 'r' ? 2 : 1, used = Math.min(need, 3 - o.n);
@@ -596,6 +600,7 @@
     /* Origines : les autres pays de la personne reçoivent une demi-case et 50 points. */
     var halves = [];
     if (!opts.gift) entry.cc.forEach(function (c) { if (c !== target && cs(c).n < 3) { var h = cs(c); h.n = Math.min(3, h.n + 0.5); h.names.push({ name: entry.name, slots: 0.5, half: true }); pts += 50; halves.push(c); if (h.n >= 3) L.comp[c] = 1; if (CONT[c]) L.touched[CONT[c]] = 1; L.touchedCc[c] = 1; } });
+    var b5 = opts.gift ? 0 : firstFive(); if (b5) { pts += b5; chips.push({ t: '+1312 · cinq premiers noms', k: 'big' }); }
     pts = Math.round(pts); S.pts += pts;
     S.names.push({ name: entry.name, cc: target, pts: pts, ai: !!entry.ai });
     if (/^(rihanna|lionel messi|tex)$/.test(key)) L.seen = 1;
