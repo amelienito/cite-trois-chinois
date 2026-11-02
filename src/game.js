@@ -11,7 +11,9 @@
   /* ---------- Normalisation et index ---------- */
   var FOLD = { 'ø': 'o', 'ł': 'l', 'đ': 'd', 'ß': 'ss', 'æ': 'ae', 'œ': 'oe', 'ı': 'i' };
   function norm(s) {
-    return String(s).toLowerCase().replace(/[øłđßæœı]/g, function (c) { return FOLD[c]; })
+    var l = String(s).toLowerCase();
+    if (/^[a-z0-9 .\-]*$/.test(l)) return l.replace(/[^a-z0-9]+/g, ' ').trim();
+    return l.replace(/[øłđßæœı]/g, function (c) { return FOLD[c]; })
       .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'`]/g, '')
       .replace(/[^a-z0-9]+/g, ' ').trim();
   }
@@ -34,7 +36,7 @@
     var toks = key.split(' ');
     if (toks.length > 1) {
       var last = toks[toks.length - 1];
-      if (last.length >= 4) (LAST[last] = LAST[last] || []).indexOf(e) < 0 && LAST[last].push(e);
+      if (last.length >= 4) (LAST[last] = LAST[last] || []).push(e);
     }
     var aks = e.aliases.map(function (a) { var ka = norm(a); addKey(ka, e); return ka; });
     if (lazyVar) PEND.push([e, key, aks]); else addVariants(e, key, aks);
@@ -42,22 +44,28 @@
   }
   // Variantes (sans espaces, mots dans le désordre) : construites après l'affichage, ou à la première recherche.
   var PEND = [], pendI = 0, lazyVar = true;
+  function ensureAll() { if (DBI < DB.length || pendI < PEND.length) drainVariants(null); }
   function addVariants(e, key, aks) {
     if (key.indexOf(' ') > 0) { addKey(key.replace(/ /g, ''), e); addKey(sortTokens(key), e); }
     aks.forEach(function (ka) { if (ka.indexOf(' ') > 0) addKey(ka.replace(/ /g, ''), e); });
   }
   function drainVariants(deadline) {
     var t0 = Date.now();
+    while (DBI < DB.length) {
+      loadRow(DB[DBI++]);
+      if (deadline && (DBI & 255) === 0 && (deadline.timeRemaining ? deadline.timeRemaining() < 3 : Date.now() - t0 > 12)) { later(drainVariants); return; }
+    }
     while (pendI < PEND.length) {
       var x = PEND[pendI++]; addVariants(x[0], x[1], x[2]);
       if (deadline && (pendI & 255) === 0 && (deadline.timeRemaining ? deadline.timeRemaining() < 3 : Date.now() - t0 > 12)) break;
     }
-    if (pendI < PEND.length) { if (deadline) later(drainVariants); } else PEND = [];
+    if (pendI < PEND.length) { if (deadline) later(drainVariants); } else { PEND = []; pendI = 0; lazyVar = false; }
   }
   function later(fn) { if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 1500 }); else setTimeout(function () { fn({}); }, 30); }
-  DB.forEach(function (r) {
-    addEntry({ name: r[0], cc: r[1].split('/'), tier: r[2], aliases: (r[3] || '').split(';').filter(Boolean), job: r[4], year: r[5], hint: r[6], tags: r[7] });
-  });
+  function loadRow(r) { addEntry({ name: r[0], cc: r[1].split('/'), tier: r[2], aliases: (r[3] || '').split(';').filter(Boolean), job: r[4], year: r[5], hint: r[6], tags: r[7] }); }
+  // Les 16 000 premières personnes (base d'origine) tout de suite, le reste pendant que la page s'affiche.
+  var DBI = 0;
+  for (; DBI < Math.min(DB.length, 16000); DBI++) loadRow(DB[DBI]);
   (window.__HIST || []).forEach(function (h) {
     var e = addEntry({ name: h[0], cc: h[1].split('/'), tier: 'r', job: h[3], year: '', hint: h[4] });
     if (e) { e.era = h[2]; e.hist = true; if (h[5] === '0') e.dead = true; }
@@ -66,7 +74,7 @@
     var e = addEntry({ name: d[0], cc: d[1].split('/'), tier: 'r', aliases: (d[2] || '').split(';').filter(Boolean), job: d[3], hint: d[4] });
     if (e) e.dead = true;
   });
-  lazyVar = false; later(drainVariants);
+  later(drainVariants);
   var EXCL = {};
   (window.__EXCL || []).forEach(function (x) {
     [x[0]].concat((x[1] || '').split(';').filter(Boolean)).forEach(function (n) { var k = norm(n); if (k) { EXCL[k] = 1; EXCL[sortTokens(k)] = 1; } });
@@ -93,10 +101,17 @@
   }
   /* -> {entry, fuzzy, via} | {ambig:[...]} | null */
   function lookup(input, sel) {
-    if (pendI < PEND.length) drainVariants(null);
+    ensureAll();
     var n = norm(input);
     if (n.length < 2) return null;
     var hit = INDEX[n] || INDEX[sortTokens(n)] || (n.indexOf(' ') > 0 && INDEX[n.replace(/ /g, '')]);
+    // Un seul mot qui est aussi un nom de famille : un simple surnom d'une personne peu connue ne l'emporte pas.
+    if (hit && n.indexOf(' ') < 0) {
+      var strong = hit.filter(function (e) { return e.tier === 's' || !/f/.test(e.tags || '') || norm(e.name) === n; });
+      if (strong.length) hit = strong;
+      else if (LAST[n]) hit = null;
+      else return { entry: pick(hit, sel), fuzzy: false, weak: true };
+    }
     if (hit) return { entry: pick(hit, sel), fuzzy: false };
     if (n.indexOf(' ') < 0 && LAST[n]) {
       if (LAST[n].length === 1) return { entry: LAST[n][0], fuzzy: false, via: 'last' };
@@ -758,7 +773,7 @@
   var BYCC = null;
   /* Débloque jusqu'à n noms dans autant de pays encore ouverts. Renvoie la liste, sans rien afficher. */
   function unlock(n, mix, skip) {
-    if (!BYCC) { BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
+    if (!BYCC) { ensureAll(); BYCC = {}; ENTRIES.forEach(function (e) { if (e.ai || /[hn]/.test(e.tags) || !e.job) return; e.cc.forEach(function (c) { (BYCC[c] = BYCC[c] || []).push(e); }); }); }
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length && (!skip || skip.indexOf(c) < 0); });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
@@ -813,12 +828,12 @@
     if (norm(text) === 'pnl') { L.pnl = 1; checkBadges(); }
     var r = lookup(text, S.sel);
     if (blocked(text)) { say('Reconnu, mais non retenu : ce nom n’est pas pris en compte ici (0 point, ta série est intacte).', 'info'); return; }
-    if (r && r.entry && !r.fuzzy) { accept(r.entry, {}); return; }
-    var local = r && r.entry ? r.entry : null;
+    if (r && r.entry && !r.fuzzy && !r.weak) { accept(r.entry, {}); return; }
+    var local = r && r.entry ? r.entry : null, localFuzzy = !!(r && r.fuzzy);
+    var localAmbig = r && r.ambig ? r.ambig.map(function (e) { return e.name; }) : null;
     function suggest(names) {
       say('Plusieurs personnes peuvent correspondre. Laquelle ?', 'info', '<div class="suggest">' + names.map(function (n) { return '<button type="button" data-name="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>');
     }
-    if (r && r.ambig) { suggest(r.ambig.map(function (e) { return e.name; })); return; }
     if (aiBusy) return;
     aiBusy = true; $('go-free').disabled = true;
     say('<span class="flag">🔎</span>Je cherche « ' + esc(text) + ' »…', 'info');
@@ -834,10 +849,12 @@
       }
       if (a.ok && !a.fuzzy) { take(a, false); return; }
       if (a.dead && a.exact) { say('Cette personne nous a quittés.', 'info'); return; }
-      if (local) { accept(local, { fuzzy: true }); return; }
-      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
+      if (local && localFuzzy) { accept(local, { fuzzy: true }); return; }
       if (a.ok) { take(a, true); return; }
       if (a.ambig) { suggest(a.ambig); return; }
+      if (local) { accept(local, {}); return; }
+      if (localAmbig) { suggest(localAmbig); return; }
+      if (a.dead) { say('Cette personne nous a quittés.', 'info'); return; }
       if (a.no) { miss('« ' + esc(text) + ' » : personne célèbre et vivante introuvable. Vérifie l’orthographe, ou réclame-la.', text); return; }
       if (a.err === 'rate_limited') { say('Trop de vérifications d’un coup. Réessaie dans un instant, ou réclame le nom.', 'no', '<button type="button" class="link" data-claim="' + esc(text) + '">Réclamer « ' + esc(text) + ' »</button>'); return; }
       miss('« ' + esc(text) + ' » n’est pas dans la base, et je n’ai pas pu le vérifier automatiquement.', text);
@@ -956,6 +973,7 @@
   function dayNo(seed) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(seed); return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5) : hash(seed) % 100000; }
   function todayKey() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function dailyPool() {
+    ensureAll();
     return ENTRIES.filter(function (e) {
       if (e.hist || e.dead || /[hfn]/.test(e.tags || '') || !e.hint || !e.year || !e.job || e.ai) return false;
       if (!e.tags && e.tier !== 's') return false;
@@ -987,7 +1005,7 @@
     if (h) out.splice(2, 0, h.id);
     return out.slice(0, 5);
   }
-  function entryById(id) { for (var i = 0; i < ENTRIES.length; i++) if (ENTRIES[i].id === id) return ENTRIES[i]; return null; }
+  function entryById(id) { ensureAll(); for (var i = 0; i < ENTRIES.length; i++) if (ENTRIES[i].id === id) return ENTRIES[i]; return null; }
   var NCLUE = 4;
   function clueOf(e, lvl) {
     var cc = e.cc[0], dec = Math.floor(parseInt(e.year, 10) / 10) * 10;
