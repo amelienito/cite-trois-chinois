@@ -558,7 +558,7 @@
     S.typed = (S.typed || 0) + 1; var n = S.typed;
     if (n <= 3) return { x2: true, chip: '×2 pour bien démarrer' };
     if (n === 13) return { add: 1312, chip: '+1312' };
-    if (n === 38) return { add: 280, chip: '+280 · bonus chauvinisme grenoblois' };
+    if (n === 38) return { add: 380, chip: '+380 · bonus chauvinisme grenoblois' };
     if (n === 75) return { add: 750, chip: '75e' };
     return null;
   }

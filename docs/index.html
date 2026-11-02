@@ -308,6 +308,8 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
 .mrow .mi + .mi { border-top: 0; border-left: 1px solid var(--hair); }
 a.mi { color: inherit; text-decoration: none; box-sizing: border-box; }
 .radio { position: absolute; left: 10px; top: 52px; z-index: 4; display: flex; background: var(--panel); border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent); box-shadow: 0 10px 24px var(--shade); max-width: calc(100% - 70px); }
+/* la radio : seulement sur ordi, quand il y a la place */
+@media (max-width: 899px), (hover: none) { #b-radio, #radio { display: none !important; } }
 .r-yt { width: 200px; height: 200px; flex: none; background: #000; }
 .r-yt iframe, .r-yt > div { width: 200px; height: 200px; display: block; border: 0; }
 .r-info { width: 150px; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; }
@@ -353,8 +355,6 @@ a.mi { color: inherit; text-decoration: none; box-sizing: border-box; }
       <p class="mh">Ailleurs</p>
       <button class="mi" id="b-radio" type="button">Radio Music Discovery <small>▶</small></button>
       <a class="mi" href="https://amelienito.github.io/" target="_blank" rel="noopener">Les autres créations <small>↗</small></a>
-      <a class="mi" href="https://amelienito.github.io/fun-facts/" target="_blank" rel="noopener">Fun facts <small>↗</small></a>
-      <a class="mi" href="https://www.onsenbranle.fr" target="_blank" rel="noopener">onsenbranle.fr <small>↗</small></a>
     </nav>
   </header>
 
@@ -987,7 +987,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     S.typed = (S.typed || 0) + 1; var n = S.typed;
     if (n <= 3) return { x2: true, chip: '×2 pour bien démarrer' };
     if (n === 13) return { add: 1312, chip: '+1312' };
-    if (n === 38) return { add: 280, chip: '+280 · bonus chauvinisme grenoblois' };
+    if (n === 38) return { add: 380, chip: '+380 · bonus chauvinisme grenoblois' };
     if (n === 75) return { add: 750, chip: '75e' };
     return null;
   }
