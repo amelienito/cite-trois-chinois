@@ -684,6 +684,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     { id: 'almost', secret: true, n: '', d: '', x: ['UHJlc3F1ZSByYWNpc3Rl', 'RGl4IG5vbXMgY2l0w6lzLCBhdWN1biBlbiBBZnJpcXVlLg=='], g: 'flag', c: '#d9a441', t: function () { return !!L.almost; } },
     { id: 'really', secret: true, n: '', d: '', x: ['QnJhdm8sIHTigJllcyByYWNpc3Rl', 'RGV1eCBtaW51dGVzIHBsdXMgdGFyZCwgdG91am91cnMgcmllbiBlbiBBZnJpcXVlLg=='], g: 'flag', c: '#2b3440', t: function () { return !!L.really; } },
     { id: 'seen', secret: true, n: '', d: '', x: ['QmllbiB2dQ==', 'VHUgYXMgc3VpdmkgbGVzIGV4ZW1wbGVzIGR1IGNoYW1wIGRlIHNhaXNpZS4='], g: 'target', c: '#8fb0cc', t: function () { return !!L.seen; } },
+    { id: 'auteur', secret: true, n: '', d: '', x: ['TGUgY3LDqWF0ZXVy', 'VHUgYXMgY2l0w6kgY2VsdWkgcXVpIGEgZmFpdCBsZSBqZXUuIFVuIG1pbGxpb24gZGUgcG9pbnRzLCByaWVuIHF1ZSDDp2Eu'], g: 'crown', c: '#e6c274', t: function () { return !!L.auteur; } },
     { id: 'flag', n: 'Lanceur d’alerte', d: 'Envoie une réclamation.', g: 'flag', c: '#e6c274', t: function () { return L.claims >= 1; } }
   ];
   function dec(s) { try { return decodeURIComponent(escape(atob(s))); } catch (e) { return ''; } }
@@ -1284,9 +1285,43 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     lastSubmit = Date.now(); lastOffer = Date.now();
     renderPills(); persist(); checkBadges();
   }
+  /* Le bonus du créateur : un million de points, et de quoi remplir d'un coup tous les pays les plus durs (rang C). */
+  function estCreateur(t) { var n = norm(t), a = dec('YW1lbGllbiBnZW5lbGxl'); return n === a || n === a.split(' ').reverse().join(' '); }
+  function bonusCreateur() {
+    var key = dec('YW1lbGllbiBnZW5lbGxl');
+    if (S.used[key]) { say('Déjà cité : on ne gagne le million qu’une fois par partie.', 'info'); return; }
+    S.used[key] = 1; S.pts += 1000000; L.auteur = 1; missRun = 0;
+    FX.big(); buzz([30, 40, 30, 40, 120]); burst(window.innerWidth / 2, window.innerHeight * 0.35, 120, 10);
+    pop('+1 000 000', window.innerWidth / 2, window.innerHeight * 0.4); stampText('1 000 000'); bump('pl-pts');
+    say('Amélien Genelle, le créateur du jeu : <b>+1 000 000 points</b>. Et une faveur, si tu la veux :', 'ok',
+      '<div class="boosts"><button type="button" class="boost" data-createur="1">Remplir d’un coup les pays les plus durs</button></div>');
+    renderPills(); persist(); checkBadges();
+  }
+  function remplirDurs() {
+    if (mode !== 'free') return;
+    if (!BYCC) unlock(0);
+    var cibles = Object.keys(NAMES).filter(function (c) { return TIER[c] === 'C' && pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length; });
+    if (!cibles.length) { say('Les pays les plus durs sont déjà tous remplis.', 'info'); return; }
+    var avant = S.pts, faits = [], i = 0;
+    say('<span class="flag">⏳</span>Je remplis ' + cibles.length + ' pays…', 'info');
+    (function lot() {
+      cibles.slice(i, i + 8).forEach(function (c) {
+        var pool = BYCC[c].filter(function (e) { return !S.used[norm(e.name)]; });
+        for (var k = 0; k < 6 && cs(c).n < 3 && pool.length; k++) { var e = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]; accept(e, { gift: true, force: c }); }
+        if (cs(c).n >= 3) faits.push(c);
+      });
+      i += 8;
+      if (i < cibles.length) { setTimeout(lot, 0); return; }
+      FX.big(); showRegion('world'); setRegBtn('world');
+      say('<span class="flag">🏁</span>' + faits.length + ' pays parmi les plus durs remplis d’un coup : +' + fmt(S.pts - avant) + ' pts.', 'ok',
+        '<div class="drapeaux" style="font-size:1.25em;line-height:1.5;word-break:break-all">' + faits.map(flag).join('') + '</div>');
+      lastSubmit = Date.now(); renderPills(); persist(); checkBadges();
+    })();
+  }
   function submitFree(text) {
     text = text.replace(/\s+/g, ' ').trim();
     if (text.length < 2) return;
+    if (mode === 'free' && estCreateur(text)) { bonusCreateur(); return; }
     if (norm(text) === 'pnl') { L.pnl = 1; checkBadges(); }
     if (spoils(text)) { gameLost(); return; }
     var r = lookup(text, S.sel);
@@ -1620,6 +1655,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
+    else if (b.hasAttribute('data-createur')) { b.disabled = true; remplirDurs(); }
     else if (b.hasAttribute('data-boost')) boost(b.getAttribute('data-boost') === 'hard' || b.getAttribute('data-boost') === 'soft' ? b.getAttribute('data-boost') : null);
     else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
