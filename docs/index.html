@@ -1234,12 +1234,10 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var open = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && BYCC[c] && BYCC[c].length && (!skip || skip.indexOf(c) < 0); });
     for (var i = open.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = open[i]; open[i] = open[j]; open[j] = t; }
     var done = [], before = S.pts;
-    if (ordre === 'hard' || ordre === 'soft') {
-      // 'hard' : les pays les plus difficiles d'abord ; 'soft' : on écarte les pays trop techniques (rang C)
-      var rang = { C: 0, B: 1, A: 2 };
-      if (ordre === 'soft') open = open.filter(function (c) { return TIER[c] !== 'C'; });
-      var rk = function (c) { return rang[TIER[c]] === undefined ? 0 : rang[TIER[c]]; };
-      open = open.map(function (c) { return [c, rk(c) + Math.random() * 0.9]; }).sort(function (a, b) { return a[1] - b[1]; }).map(function (a) { return a[0]; });
+    if (ordre === 'soft') open = open.filter(function (c) { return TIER[c] !== 'C'; });   // sans les pays trop techniques
+    if (!mix) {
+      // d'abord les pays où personne n'a encore été trouvé, puis ceux à un nom, puis à deux (tri stable : le hasard fait le reste)
+      open = open.map(function (c, k) { return [c, cs(c).n, k]; }).sort(function (a, b) { return (Math.floor(a[1]) - Math.floor(b[1])) || (a[2] - b[2]); }).map(function (a) { return a[0]; });
     } else if (mix) {
       // un mélange de pays faciles (A), moyens (B) et difficiles (C)
       var g = { A: [], B: [], C: [] }; open.forEach(function (c) { (g[TIER[c]] || g.C).push(c); });
@@ -1656,7 +1654,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (b.hasAttribute('data-claim')) openClaim(b.getAttribute('data-claim'));
     else if (b.hasAttribute('data-name')) submitFree(b.getAttribute('data-name'));
     else if (b.hasAttribute('data-createur')) { b.disabled = true; remplirDurs(); }
-    else if (b.hasAttribute('data-boost')) boost(b.getAttribute('data-boost') === 'hard' || b.getAttribute('data-boost') === 'soft' ? b.getAttribute('data-boost') : null);
+    else if (b.hasAttribute('data-boost')) boost(b.getAttribute('data-boost') === 'soft' ? 'soft' : null);
     else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
   $('b-claim').onclick = function () { openClaim(''); };
@@ -1815,8 +1813,8 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     if (now - lastSubmit < 90000 || now - lastUser < 60000 || now - lastHard < 180000) return;
     if (document.querySelector('.modal:not([hidden])') || !$('menu').hidden || $('in-free').value) return;
     lastHard = now; lastAct = now + 30000;   // pas de phrase d’ambiance par-dessus pendant un moment
-    say('Toujours bloqué ? Je peux débloquer dix noms en commençant par les pays les plus durs, ou en laissant de côté les pays trop techniques.', 'info',
-      '<div class="boosts"><button type="button" class="boost" data-boost="hard">Les plus durs d’abord</button><button type="button" class="boost" data-boost="soft">Sans les pays trop techniques</button></div>');
+    say('Toujours bloqué ? Je peux débloquer dix noms dans les pays où il n’y a encore personne, ou en laissant de côté les pays trop techniques.', 'info',
+      '<div class="boosts"><button type="button" class="boost" data-boost="vides">Les pays encore vides</button><button type="button" class="boost" data-boost="soft">Sans les pays trop techniques</button></div>');
   }, 5000);
 
   /* succès chronométrés : dix noms sans Afrique, puis deux minutes de plus */
