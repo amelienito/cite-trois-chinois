@@ -581,8 +581,8 @@
     var target = opts.force || chooseTarget(entry, S.sel);
     if (!target) {
       var home = entry.cc[0];
-      var tb = opts.gift ? null : typedBonus(), xs = [], rab = 25;
-      if (tb) { if (tb.x2) rab *= 2; if (tb.add) rab += tb.add; xs.push({ t: tb.chip, k: 'big' }); }
+      var tb = opts.gift ? null : typedBonus(), xs = [], rab = home === 'IL' ? 0 : 25;   // Israël : 0 point, même en rab
+      if (tb && home !== 'IL') { if (tb.x2) rab *= 2; if (tb.add) rab += tb.add; xs.push({ t: tb.chip, k: 'big' }); }
       S.used[key] = 1; S.pts += rab; S.names.push({ name: entry.name, cc: home, pts: rab, ai: !!entry.ai, over: true }); L.names++;
       var pt0 = screenOf(home) || mid(); FX.tap(); pop('+' + fmt(rab), pt0.x, pt0.y); bump('pl-pts'); bump('pl-names');
       if (opts.ai) xs.push({ t: 'nom vérifié', k: 'violet' });
@@ -618,8 +618,10 @@
     if (opts.gift) pts *= 0.75;
     /* Origines : les autres pays de la personne reçoivent une demi-case et 50 points. */
     var halves = [];
-    if (!opts.gift) entry.cc.forEach(function (c) { if (c !== target && cs(c).n < 3) { var h = cs(c); h.n = Math.min(3, h.n + 0.5); h.names.push({ name: entry.name, slots: 0.5, half: true }); pts += 50; halves.push(c); if (h.n >= 3) L.comp[c] = 1; if (CONT[c]) L.touched[CONT[c]] = 1; L.touchedCc[c] = 1; } });
+    if (!opts.gift) entry.cc.forEach(function (c) { if (c !== target && cs(c).n < 3) { var h = cs(c); h.n = Math.min(3, h.n + 0.5); h.names.push({ name: entry.name, slots: 0.5, half: true }); if (c !== 'IL') pts += 50; halves.push(c); if (h.n >= 3) L.comp[c] = 1; if (CONT[c]) L.touched[CONT[c]] = 1; L.touchedCc[c] = 1; } });
     var tb = opts.gift ? null : typedBonus(); if (tb) { if (tb.x2) pts *= 2; if (tb.add) pts += tb.add; chips.push({ t: tb.chip, k: 'big' }); }
+    /* Israël : la réponse est bonne et la case se remplit, mais ça rapporte 0 point. */
+    if (target === 'IL') { pts = 0; chips = chips.filter(function (c) { return /honte|à la une|nom vérifié|½/.test(c.t); }); }
     pts = Math.round(pts); S.pts += pts;
     S.names.push({ name: entry.name, cc: target, pts: pts, ai: !!entry.ai });
     if (/^(rihanna|lionel messi|tex)$/.test(key)) L.seen = 1;
