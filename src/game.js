@@ -299,13 +299,13 @@
   /* ---------- Carte ---------- */
   var svg = $('map'), tip = $('tip');
   var NS = 'http://www.w3.org/2000/svg';
-  var VBW = 900, VBH = 440.7, view = { x: 0, y: 0, w: 900, h: 440.7 };
+  var VBW = 900, VBH = 440.7, view = { x: 0, y: 0, w: 900, h: 440.7 }, enMonde = true;
   var pathEls = {};
   function buildMap() {
     var W = window.__WORLD;
     if (!W || !W.paths) { $('mapwrap').insertAdjacentHTML('beforeend', '<div class="nomap"><p><b>La carte n’a pas pu se charger.</b><br>Le jeu marche quand même : tape des noms, ou ouvre « Choisir un pays ».</p></div>'); svg.style.display = 'none'; return; }
     if (W.insets && W.insets[0]) { VBW = W.insets[0].width || VBW; VBH = W.insets[0].height || VBH; }
-    view = { x: 0, y: 0, w: VBW, h: VBH };
+    view = vueMonde();
     var gr = '<defs><pattern id="h1" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#3f6a8f" stroke-width="1"/></pattern><pattern id="h2" width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="2.2" stroke="#3f6a8f" stroke-width="1.2"/></pattern></defs><g id="grat" pointer-events="none" fill="none" stroke="#2b3440" stroke-opacity=".08" stroke-width=".4" vector-effect="non-scaling-stroke">';
     for (var gx = 0; gx <= VBW; gx += VBW / 24) gr += '<line x1="' + gx + '" y1="-200" x2="' + gx + '" y2="' + (VBH + 200) + '"/>';
     for (var gy = 0; gy <= VBH; gy += VBH / 11) gr += '<line x1="-300" y1="' + gy + '" x2="' + (VBW + 300) + '" y2="' + gy + '"/>';
@@ -322,20 +322,30 @@
     applyView(); paintAll();
   }
   function applyView() { svg.setAttribute('viewBox', view.x + ' ' + view.y + ' ' + view.w + ' ' + view.h); }
+  /* La vue prend la forme de son cadre (hauteur / largeur) : sur un téléphone en hauteur, la carte remplit l'écran
+     au lieu de flotter dans une mince bande au milieu de la mer. */
+  function asp() { var r = svg.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? r.height / r.width : VBH / VBW; }
+  function vueMonde() {
+    var a = asp();
+    if (a > 0.75) { var w = Math.min(VBW, Math.max(VBW * 0.5, VBH * 1.15 / a)), h = w * a; return { x: VBW * 0.5 - w / 2, y: VBH / 2 - h / 2, w: w, h: h }; }   // en hauteur : la moitié du monde, en grand (Europe et Afrique au centre)
+    if (a < VBH / VBW) { var hh = VBH, ww = hh / a; return { x: (VBW - ww) / 2, y: 0, w: ww, h: hh }; }
+    return { x: 0, y: (VBH - VBW * a) / 2, w: VBW, h: VBW * a };
+  }
   function geom() {
     var r = svg.getBoundingClientRect();
     var s = Math.min(r.width / view.w, r.height / view.h) || 1;
     return { r: r, s: s, ox: (r.width - view.w * s) / 2, oy: (r.height - view.h * s) / 2 };
   }
   function clampView() {
-    view.x = Math.max(-view.w * 0.25, Math.min(VBW - view.w * 0.75, view.x));
-    view.y = Math.max(-view.h * 0.25, Math.min(VBH - view.h * 0.75, view.y));
+    // plus large (ou plus haute) que la carte : on la centre ; sinon on peut déborder d'un quart, pas plus
+    if (view.w >= VBW) view.x = (VBW - view.w) / 2; else view.x = Math.max(-view.w * 0.25, Math.min(VBW - view.w * 0.75, view.x));
+    if (view.h >= VBH) view.y = (VBH - view.h) / 2; else view.y = Math.max(-view.h * 0.25, Math.min(VBH - view.h * 0.75, view.y));
   }
   function zoomAt(px, py, newW) {
     newW = Math.max(VBW / 14, Math.min(VBW, newW));
     var g = geom();
     var wx = view.x + (px - g.r.left - g.ox) / g.s, wy = view.y + (py - g.r.top - g.oy) / g.s;
-    view.w = newW; view.h = newW * VBH / VBW;
+    view.w = newW; view.h = newW * asp(); enMonde = false;
     var g2 = geom();
     view.x = wx - (px - g2.r.left - g2.ox) / g2.s; view.y = wy - (py - g2.r.top - g2.oy) / g2.s;
     clampView(); applyView();
@@ -362,8 +372,8 @@
   }
   function focusOn(cc) {
     var b = boxOf(cc); if (!b) return;
-    var w = Math.min(VBW, Math.max(b.w * 6, VBW / 5));
-    view.w = w; view.h = w * VBH / VBW; view.x = b.x + b.w / 2 - view.w / 2; view.y = b.y + b.h / 2 - view.h / 2;
+    var w = Math.min(vueMonde().w, Math.max(b.w * 6, VBW / 5));   // (jamais plus loin que la vue « monde » : sur téléphone, la carte ne rapetisse pas après un grand pays)
+    view.w = w; view.h = w * asp(); view.x = b.x + b.w / 2 - view.w / 2; view.y = b.y + b.h / 2 - view.h / 2; enMonde = false;
     clampView(); applyView();
   }
   var REG = { EU: ['PT','ES','FR','GB','IE','IT','DE','PL','NO','SE','FI','GR','TR','UA','RO','BY','IS','CH','AT','CZ'], OC: ['AU','NZ','PG','SB','VU','FJ','WS','TO'] };
@@ -372,7 +382,8 @@
     return Object.keys(CONT).filter(function (c) { return CONT[c] === r && c !== 'RU'; });
   }
   function showRegion(r) {
-    if (r === 'world') { view = { x: 0, y: 0, w: VBW, h: VBH }; applyView(); return; }
+    if (r === 'world') { view = vueMonde(); enMonde = true; applyView(); return; }
+    enMonde = false;
     var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     regionCodes(r).forEach(function (c) {
       var b = boxOf(c); if (!b) return;
@@ -380,7 +391,7 @@
     });
     if (x1 < x0) return;
     var w = (x1 - x0) * 1.12, h = (y1 - y0) * 1.12, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    w = Math.max(w, h * VBW / VBH, VBW / 8); var hh = w * VBH / VBW;
+    var a = asp(); w = Math.min(Math.max(w, h / a, VBW / 8), VBW); var hh = w * a;
     view = { x: cx - w / 2, y: cy - hh / 2, w: w, h: hh }; clampView(); applyView();
   }
   function fmtN(n) { return String(Math.round(Math.min(n, 3) * 10) / 10).replace('.', ','); }
@@ -400,6 +411,13 @@
     var r = el.getBoundingClientRect(); if (!r.width && !r.height) return null;
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   }
+  // le cadre change (clavier du téléphone, rotation) : même centre, même largeur, la hauteur suit
+  // (tant qu'on n'a ni zoomé ni bougé la carte, elle reprend la vue « monde » adaptée au nouveau cadre)
+  if (window.ResizeObserver) new ResizeObserver(function () {
+    if (!svg.getBoundingClientRect().width) return;
+    if (enMonde) { view = vueMonde(); applyView(); return; }
+    var cx = view.x + view.w / 2, cy = view.y + view.h / 2; view.h = view.w * asp(); view.x = cx - view.w / 2; view.y = cy - view.h / 2; clampView(); applyView();
+  }).observe(svg);
   var lastTap = { cc: null, t: 0 };
   function revealCountry(cc) {
     if (mode !== 'free') return;
@@ -424,7 +442,7 @@
     } else if (drag && ptrs[e.pointerId]) {
       var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
       if (!drag.moved && Math.hypot(dx, dy) > 5) { drag.moved = true; svg.classList.add('drag'); tip.hidden = true; }
-      if (drag.moved) { var s = geom().s; view.x = drag.v.x - dx / s; view.y = drag.v.y - dy / s; clampView(); applyView(); }
+      if (drag.moved) { var s = geom().s; view.x = drag.v.x - dx / s; view.y = drag.v.y - dy / s; enMonde = false; clampView(); applyView(); }
     }
     if (!drag || !drag.moved) hover(e);
   });
