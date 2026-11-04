@@ -53,6 +53,9 @@ button { cursor: pointer; }
 .hud { display: flex; align-items: center; gap: 10px; padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top)); flex-wrap: wrap; border-bottom: 1px solid var(--line); position: relative; z-index: 8; background: var(--glass); }
 .logo { font: 700 24px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; margin-right: auto; display: flex; align-items: baseline; gap: .38em; white-space: nowrap; }
 .logo i { font-style: normal; color: var(--acc-l); font-size: 1.35em; line-height: .8; letter-spacing: 0; }
+/* le retour aux créations d’Amélien (le hub), toujours là en haut à gauche */
+.retour-hub { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 6px 10px; border: 1px solid var(--line); color: var(--dim); font: 600 14px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; transition: color .2s, border-color .2s, background .2s; }
+.retour-hub:hover { color: var(--ink); border-color: var(--dim); background: var(--panel); }
 .logo::after { content: ""; align-self: center; width: 34px; height: 1px; background: var(--acc); margin-left: 6px; }
 .pills { display: flex; gap: 6px; }
 .pill { background: var(--deep); border: 1px solid var(--line); padding: 3px 10px 4px; text-align: left; min-width: 64px; }
@@ -281,6 +284,7 @@ label.f { display: block; margin: 12px 0 4px; font-weight: 500; font-size: 11px;
 @media (max-width: 640px) {
   .hud { gap: 8px; padding: 6px 10px; flex-wrap: nowrap; }
   .logo { font-size: 17px; margin-right: 0; letter-spacing: .06em; } .logo::after { display: none; }
+  .retour-hub { padding: 5px 8px; } .retour-hub span { display: none; }
   .pills { order: 0; flex: 0 0 auto; margin-left: auto; gap: 4px; } .pill { min-width: 0; padding: 1px 7px 2px; } .pill small { font-size: 8px; letter-spacing: .1em; } .pill b { font-size: 14px; }
   .tools { margin-left: 0; } .ico { height: 44px; min-width: 44px; } .ico span { display: none; }
   .stage { min-height: 150px; }
@@ -327,6 +331,7 @@ a.mi { color: inherit; text-decoration: none; box-sizing: border-box; }
 </head><body>
 <div id="app">
   <header class="hud">
+    <a class="retour-hub" href="https://amelienito.github.io/#cite-3-chinois" aria-label="Retour aux créations d’Amélien" title="Retour aux créations d’Amélien">←<span> OSB</span></a>
     <div class="logo"><span>Cite</span><i>3</i><span>chinois</span></div>
     <div class="pills">
       <div class="pill x" id="pl-names"><small>Noms</small><b id="v-names">0</b></div>
