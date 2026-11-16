@@ -2,7 +2,16 @@
 <html lang="fr" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="repo" content="amelienito/cite-trois-chinois">
 <title>Cite 3 chinois</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tape le nom d'une personnalité encore vivante : trois noms complètent un pays. Combien de pays peux-tu remplir ?">
 <meta name="theme-color" content="#12151a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cite 3 chinois">
+<meta property="og:description" content="Tape le nom d'une personnalité encore vivante : trois noms complètent un pays. Combien de pays peux-tu remplir ?">
+<meta property="og:url" content="https://amelienito.github.io/cite-trois-chinois/">
+<meta property="og:image" content="https://amelienito.github.io/cite-trois-chinois/apercu-lien.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ebe7dd'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%232b3440' stroke-width='2'/%3E%3Cpath d='M5 16h22M16 5c5 5 5 17 0 22M16 5c-5 5-5 17 0 22' fill='none' stroke='%232b3440' stroke-width='1.5'/%3E%3Ccircle cx='21' cy='11' r='3.2' fill='%233f6a8f'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,14 +38,14 @@
 :root[data-theme="dark"] {
   --night: #12151a; --deep: #1a1e25; --panel: #1e232b; --line: #363d48; --ink: #e8e4da; --dim: #a0a7b1;
   --acc: #7fa8cc; --acc-d: #34506a; --acc-l: #a9c6e0; --sun: #e0b45a; --bad: #f0a878; --good: #e8e4da;
-  --on-acc: #0f1419; --on-sun: #1c2531; --sea: #0e1115; --land: #1b2027; --land-h: #262d36; --land-st: #3a424d; --s1: #35546f; --s2: #5b86ad; --s3: #8db4d8; --s3s: #b9d3ea; --glass: #12151ae6; --scrim: #05070acc; --shade: #00000066; --lock: #2a3039; --lockg: #6b7380; --dot2: #8a8f98; --hair: #363d4880; --ph: #8b939d;
+  --on-acc: #0f1419; --on-sun: #1c2531; --sea: #0e1115; --land: #252c36; --land-h: #323b47; --land-st: #4d5765; --s1: #35546f; --s2: #5b86ad; --s3: #8db4d8; --s3s: #b9d3ea; --glass: #12151ae6; --scrim: #05070acc; --shade: #00000066; --lock: #2a3039; --lockg: #6b7380; --dot2: #8a8f98; --hair: #363d4880; --ph: #8b939d;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
   --night: #12151a; --deep: #1a1e25; --panel: #1e232b; --line: #363d48; --ink: #e8e4da; --dim: #a0a7b1;
   --acc: #7fa8cc; --acc-d: #34506a; --acc-l: #a9c6e0; --sun: #e0b45a; --bad: #f0a878; --good: #e8e4da;
-  --on-acc: #0f1419; --on-sun: #1c2531; --sea: #0e1115; --land: #1b2027; --land-h: #262d36; --land-st: #3a424d; --s1: #35546f; --s2: #5b86ad; --s3: #8db4d8; --s3s: #b9d3ea; --glass: #12151ae6; --scrim: #05070acc; --shade: #00000066; --lock: #2a3039; --lockg: #6b7380; --dot2: #8a8f98; --hair: #363d4880; --ph: #8b939d;
+  --on-acc: #0f1419; --on-sun: #1c2531; --sea: #0e1115; --land: #252c36; --land-h: #323b47; --land-st: #4d5765; --s1: #35546f; --s2: #5b86ad; --s3: #8db4d8; --s3s: #b9d3ea; --glass: #12151ae6; --scrim: #05070acc; --shade: #00000066; --lock: #2a3039; --lockg: #6b7380; --dot2: #8a8f98; --hair: #363d4880; --ph: #8b939d;
   color-scheme: dark;
   }
 }
@@ -54,7 +63,8 @@ button { cursor: pointer; }
 .logo { font: 700 24px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; margin-right: auto; display: flex; align-items: baseline; gap: .38em; white-space: nowrap; }
 .logo i { font-style: normal; color: var(--acc-l); font-size: 1.35em; line-height: .8; letter-spacing: 0; }
 /* le retour aux créations d’Amélien (le hub), toujours là en haut à gauche */
-.retour-hub { flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 6px 10px; border: 1px solid var(--line); color: var(--dim); font: 600 14px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; transition: color .2s, border-color .2s, background .2s; }
+.retour-hub { position: relative; flex: none; display: inline-flex; align-items: center; gap: 3px; padding: 6px 10px; border: 1px solid var(--line); color: var(--dim); font: 600 14px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; text-decoration: none; transition: color .2s, border-color .2s, background .2s; }
+.retour-hub::after { content: ""; position: absolute; inset: -9px -6px; }
 .retour-hub:hover { color: var(--ink); border-color: var(--dim); background: var(--panel); }
 .logo::after { content: ""; align-self: center; width: 34px; height: 1px; background: var(--acc); margin-left: 6px; }
 .pills { display: flex; gap: 6px; }
