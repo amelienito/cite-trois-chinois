@@ -11,6 +11,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ebe7dd'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%232b3440' stroke-width='2'/%3E%3Cpath d='M5 16h22M16 5c5 5 5 17 0 22M16 5c-5 5-5 17 0 22' fill='none' stroke='%232b3440' stroke-width='1.5'/%3E%3Ccircle cx='21' cy='11' r='3.2' fill='%233f6a8f'/%3E%3C/svg%3E">
+<script src="https://amelienito.github.io/osb.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -102,17 +103,23 @@ button { cursor: pointer; }
 .nomap { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--dim); }
 
 /* pastille pays ciblé, fine et non bloquante */
-.card { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 70px); background: var(--deep); border: 1px solid var(--acc); padding: 3px 4px 3px 10px; z-index: 5; display: flex; align-items: center; gap: 6px; }
+/* La fiche du pays : un clic sur la carte, et on voit les noms qu'on y a posés. */
+.card { position: absolute; left: 10px; bottom: 10px; width: min(300px, calc(100% - 72px)); background: var(--deep); border: 1px solid var(--acc); padding: 8px 10px 10px; z-index: 5; box-shadow: 0 10px 24px var(--shade); animation: card-in .22s ease-out; }
+@keyframes card-in { from { opacity: 0; transform: translateY(8px); } }
 .card[hidden] { display: none; }
-.card.open { flex-wrap: wrap; padding: 6px 8px 8px 10px; width: min(280px, calc(100% - 70px)); }
-.card .slots { flex-basis: 100%; display: grid; gap: 3px; margin: 6px 0 2px; }
-.slot { font: 12px/1.3 var(--f-body); padding: 4px 8px; border: 1px dashed var(--line); color: var(--dim); }
+.card-h { display: flex; align-items: center; gap: 8px; }
+.card .pillt { flex: 1; min-width: 0; font: 700 19px/1.1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-n { font: 600 13px/1 var(--f-body); color: var(--dim); }
+.card-n.ok { color: var(--s3); }
+.card-l { display: block; margin: 8px 0 5px; font: 600 9px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.card .slots { display: grid; gap: 3px; }
+.slot { display: flex; align-items: center; gap: 8px; font: 13px/1.3 var(--f-body); padding: 6px 8px; border: 1px dashed var(--line); color: var(--dim); }
+.slot em { flex: none; width: 1.2em; font-style: normal; font-weight: 600; font-size: 11px; color: var(--dim); }
+.slot span { flex: 1; min-width: 0; }
 .slot.on { border-style: solid; border-color: var(--acc); color: var(--ink); }
 .slot.rare { border-color: var(--sun); }
-.slot i { font-style: normal; font-size: 9px; letter-spacing: .1em; color: var(--sun); margin-left: 6px; }
-
-.card .pillt { font: 500 13px/1 var(--f-body); white-space: nowrap; }
-.card .x { width: 24px; height: 24px; border: 0; background: transparent; color: var(--dim); font-size: 15px; }
+.slot i { flex: none; font-style: normal; font-size: 9px; letter-spacing: .1em; color: var(--sun); }
+.card .x { flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: var(--dim); font-size: 15px; }
 .card .x:hover { color: var(--ink); }
 
 /* console de jeu */
@@ -315,6 +322,11 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
 #win-body h2{text-align:center}
 .mh { margin: 0; padding: 9px 12px 3px; font: 600 9px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 .mh:not(:first-child) { border-top: 1px solid var(--line); margin-top: 4px; }
+/* le menu épuré : les trois réglages sur une seule ligne */
+.menu .mrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.menu .mrow .mi { flex-direction: column; align-items: flex-start; gap: 3px; padding: 9px 10px; border-top: 0; }
+.menu .mrow .mi + .mi { border-left: 1px solid var(--hair); }
+.menu a.mi { text-decoration: none; color: inherit; box-sizing: border-box; }
 .mh + .mi { border-top: 0; }
 .mrow { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .mrow .mi + .mi { border-top: 0; border-left: 1px solid var(--hair); }

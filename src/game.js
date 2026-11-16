@@ -543,7 +543,8 @@
   /* ---------- Fiche pays ---------- */
   function select(cc, focus) {
     if (mode !== 'free') return;
-    S.sel = (S.sel === cc && !focus) ? null : cc; if (S.sel !== revealCc) revealCc = null;
+    // un clic sur un pays ouvre sa fiche, avec les noms qu'on y a déjà posés (avant : il fallait un double-clic, que personne ne trouvait)
+    S.sel = (S.sel === cc && !focus) ? null : cc; revealCc = S.sel;
     paintAll(); renderCard();
     if (S.sel && focus !== false) focusOn(S.sel);
     var i = $('in-free'); if (i && S.sel && matchMedia('(pointer:fine)').matches) i.focus();
@@ -553,15 +554,17 @@
     var c = $('card');
     if (!S.sel || mode !== 'free') { c.hidden = true; return; }
     var cc = S.sel, o = cs(cc), k = CONT[cc];
-    var rows = [], open = revealCc === cc;
+    var rows = [], n = 0;
     o.names.forEach(function (x) {
-      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '">' + esc(x.name) + (x.rare ? ' <i>PÉPITE</i>' : '') + (x.half ? ' <i>½ ORIGINE</i>' : '') + (x.prov ? ' <i>EN VÉRIF</i>' : '') + '</div>');
-      if (x.slots === 2) rows.push('<div class="slot on rare">↳ place prise</div>');
+      n++;
+      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '"><em>' + n + '</em><span>' + esc(x.name) + '</span>' + (x.rare ? '<i>PÉPITE</i>' : '') + (x.half ? '<i>½ ORIGINE</i>' : '') + (x.prov ? '<i>EN VÉRIF</i>' : '') + '</div>');
+      if (x.slots === 2) { n++; rows.push('<div class="slot on rare"><em>' + n + '</em><span>↳ sa pépite compte double</span></div>'); }
     });
     var filled = o.names.reduce(function (a, x) { return a + (x.slots || 1); }, 0);
-    while (filled < 3 - 0.01 && rows.length < 3) { rows.push('<div class="slot">à trouver</div>'); filled++; }
-    c.className = 'card' + (open ? ' open' : '');
-    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + fmtN(o.n) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>' + (open ? '<div class="slots">' + rows.join('') + '</div>' : '');
+    while (filled < 3 - 0.01 && rows.length < 3) { n++; rows.push('<div class="slot"><em>' + n + '</em><span>à trouver</span></div>'); filled++; }
+    c.className = 'card open';
+    c.innerHTML = '<div class="card-h"><span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + '</span><b class="card-n' + (o.n >= 3 ? ' ok' : '') + '">' + fmtN(o.n) + '/3</b><button class="x" type="button" id="card-x" aria-label="Fermer la fiche du pays">✕</button></div>' +
+      '<small class="card-l">' + (o.names.length ? 'Tes noms pour ce pays' : 'Aucun nom ici pour l’instant') + '</small><div class="slots">' + rows.join('') + '</div>';
     c.hidden = false;
     $('card-x').onclick = function () { S.sel = null; revealCc = null; paintAll(); renderCard(); };
   }
@@ -1037,11 +1040,14 @@
       '<pre class="share" id="share-t">' + esc(shareText()) + '</pre>' +
       (board.length ? '<p style="color:var(--dim);margin:12px 0 0">Meilleurs scores : ' + board.map(function (b) { return fmt(b.pts); }).join(' · ') + '</p>' : '') +
       '<div class="btns"><button class="btn pri" id="e-share" type="button">Copier / partager</button><button class="btn" id="e-cont" type="button">Continuer</button><button class="btn" id="e-new" type="button">Nouvelle partie</button></div>';
+    osbPied('fin de partie, noms libres');
     open('m-end');
     $('e-share').onclick = function () { shareOut(shareText(), $('e-share')); };
     $('e-cont').onclick = function () { close('m-end'); };
     $('e-new').onclick = function () { var bn = $('e-new'); if (!bn.dataset.sure) { bn.dataset.sure = '1'; bn.dataset.l = bn.textContent; bn.textContent = 'Sûr·e ? Clique encore'; setTimeout(function () { delete bn.dataset.sure; bn.textContent = bn.dataset.l; }, 3500); return; } delete bn.dataset.sure; bn.textContent = bn.dataset.l; { fresh(); S.saved = false; persist(); paintAll(); renderCard(); renderPills(); say('Nouvelle partie. À toi !', 'info'); close('m-end'); } };
   }
+  /* osb.js, le fichier commun aux jeux d'OSB Corporation : en fin de partie, la ligne des retours et les autres jeux */
+  function osbPied(contexte) { try { if (window.OSB) window.OSB.pied($('end-body'), { ici: 'cite-3-chinois', contexte: contexte }); } catch (e) {} }
   function shareOut(text, btn) {
     var done = function () { if (btn) { var o = btn.textContent; btn.textContent = 'Copié !'; setTimeout(function () { btn.textContent = o; }, 1600); } };
     if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
@@ -1217,6 +1223,7 @@
       '<div class="dstats">' + D.list.map(function (id, i) { var e = entryById(id), r = D.rounds[i]; return '<div class="stat"><b>' + (e ? flag(e.cc[0]) : '') + '</b><small>' + (e ? esc(e.name) : '') + '</small></div>'; }).slice(0, 3).join('') + '</div>' +
       (D.unl && D.unl.length ? revealHtml('Débloqués dans les noms libres', D.unl, D.unlPts, true) : '') +
       '<div class="btns"><button class="btn pri" id="d-share" type="button">Copier / partager</button><button class="btn" id="d-more" type="button">Encore un défi</button><button class="btn" id="d-back" type="button">Noms libres</button></div>';
+    osbPied('fin du défi du jour');
     open('m-end');
     $('d-share').onclick = function () { shareOut(dailyShare(), $('d-share')); };
     $('d-more').onclick = function () { close('m-end'); startDaily('r' + Math.random().toString(36).slice(2, 8), true); };
@@ -1246,6 +1253,8 @@
     else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
   $('b-claim').onclick = function () { openClaim(''); };
+  $('b-retour').onclick = function () { if (window.OSB) window.OSB.retour({ ici: 'cite-3-chinois' }); };
+  window.addEventListener('load', function () { if (window.OSB) window.OSB.ici('cite-3-chinois'); });
   window.__rand = function () {
     var pool = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && c !== S.sel; });
     if (!pool.length) return;

@@ -13,6 +13,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ebe7dd'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%232b3440' stroke-width='2'/%3E%3Cpath d='M5 16h22M16 5c5 5 5 17 0 22M16 5c-5 5-5 17 0 22' fill='none' stroke='%232b3440' stroke-width='1.5'/%3E%3Ccircle cx='21' cy='11' r='3.2' fill='%233f6a8f'/%3E%3C/svg%3E">
+<script src="https://amelienito.github.io/osb.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -104,17 +105,23 @@ button { cursor: pointer; }
 .nomap { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--dim); }
 
 /* pastille pays ciblé, fine et non bloquante */
-.card { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 70px); background: var(--deep); border: 1px solid var(--acc); padding: 3px 4px 3px 10px; z-index: 5; display: flex; align-items: center; gap: 6px; }
+/* La fiche du pays : un clic sur la carte, et on voit les noms qu'on y a posés. */
+.card { position: absolute; left: 10px; bottom: 10px; width: min(300px, calc(100% - 72px)); background: var(--deep); border: 1px solid var(--acc); padding: 8px 10px 10px; z-index: 5; box-shadow: 0 10px 24px var(--shade); animation: card-in .22s ease-out; }
+@keyframes card-in { from { opacity: 0; transform: translateY(8px); } }
 .card[hidden] { display: none; }
-.card.open { flex-wrap: wrap; padding: 6px 8px 8px 10px; width: min(280px, calc(100% - 70px)); }
-.card .slots { flex-basis: 100%; display: grid; gap: 3px; margin: 6px 0 2px; }
-.slot { font: 12px/1.3 var(--f-body); padding: 4px 8px; border: 1px dashed var(--line); color: var(--dim); }
+.card-h { display: flex; align-items: center; gap: 8px; }
+.card .pillt { flex: 1; min-width: 0; font: 700 19px/1.1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-n { font: 600 13px/1 var(--f-body); color: var(--dim); }
+.card-n.ok { color: var(--s3); }
+.card-l { display: block; margin: 8px 0 5px; font: 600 9px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.card .slots { display: grid; gap: 3px; }
+.slot { display: flex; align-items: center; gap: 8px; font: 13px/1.3 var(--f-body); padding: 6px 8px; border: 1px dashed var(--line); color: var(--dim); }
+.slot em { flex: none; width: 1.2em; font-style: normal; font-weight: 600; font-size: 11px; color: var(--dim); }
+.slot span { flex: 1; min-width: 0; }
 .slot.on { border-style: solid; border-color: var(--acc); color: var(--ink); }
 .slot.rare { border-color: var(--sun); }
-.slot i { font-style: normal; font-size: 9px; letter-spacing: .1em; color: var(--sun); margin-left: 6px; }
-
-.card .pillt { font: 500 13px/1 var(--f-body); white-space: nowrap; }
-.card .x { width: 24px; height: 24px; border: 0; background: transparent; color: var(--dim); font-size: 15px; }
+.slot i { flex: none; font-style: normal; font-size: 9px; letter-spacing: .1em; color: var(--sun); }
+.card .x { flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: var(--dim); font-size: 15px; }
 .card .x:hover { color: var(--ink); }
 
 /* console de jeu */
@@ -317,6 +324,11 @@ body.kb .tabs { display: none; } body.kb .feed { min-height: 0; margin-bottom: 4
 #win-body h2{text-align:center}
 .mh { margin: 0; padding: 9px 12px 3px; font: 600 9px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 .mh:not(:first-child) { border-top: 1px solid var(--line); margin-top: 4px; }
+/* le menu épuré : les trois réglages sur une seule ligne */
+.menu .mrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.menu .mrow .mi { flex-direction: column; align-items: flex-start; gap: 3px; padding: 9px 10px; border-top: 0; }
+.menu .mrow .mi + .mi { border-left: 1px solid var(--hair); }
+.menu a.mi { text-decoration: none; color: inherit; box-sizing: border-box; }
 .mh + .mi { border-top: 0; }
 .mrow { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .mrow .mi + .mi { border-top: 0; border-left: 1px solid var(--hair); }
@@ -341,7 +353,7 @@ a.mi { color: inherit; text-decoration: none; box-sizing: border-box; }
 </head><body>
 <div id="app">
   <header class="hud">
-    <a class="retour-hub" href="https://amelienito.github.io/#cite-3-chinois" aria-label="Retour aux créations d’Amélien" title="Retour aux créations d’Amélien">←<span> OSB</span></a>
+    <a class="retour-hub" href="https://amelienito.github.io/#cite-3-chinois" aria-label="Retour chez OSB Corporation, vers les autres jeux" title="OSB Corporation : les autres jeux">←<span> OSB</span></a>
     <div class="logo"><span>Cite</span><i>3</i><span>chinois</span></div>
     <div class="pills">
       <div class="pill x" id="pl-names"><small>Noms</small><b id="v-names">0</b></div>
@@ -353,24 +365,20 @@ a.mi { color: inherit; text-decoration: none; box-sizing: border-box; }
       <button class="ico" id="b-menu" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
     </div>
     <nav class="menu" id="menu" hidden>
-      <p class="mh">Partie</p>
       <button class="mi" id="b-countries" type="button">Choisir un pays</button>
       <button class="mi" id="b-notebook" type="button">Mon carnet</button>
       <button class="mi" id="b-badges" type="button">Succès <small id="badge-n">0/0</small></button>
-      <button class="mi end" id="b-end" type="button">Terminer la partie</button>
-      <p class="mh">Réglages</p>
+      <button class="mi" id="b-help" type="button">Règles du jeu</button>
       <div class="mrow">
         <button class="mi" id="b-sound" type="button">Son <small>fort</small></button>
-        <button class="mi" id="b-runner" type="button" aria-pressed="false">Détente <small>off</small></button>
+        <button class="mi" id="b-runner" type="button" aria-pressed="false" title="Détente : j’avais pas les droits pour le vrai Subway Surfers">Détente <small>off</small></button>
+        <button class="mi" id="b-radio" type="button" title="Radio Music Discovery">Radio <small>▶</small></button>
       </div>
-      <p class="note">Détente : j’avais pas les droits pour le vrai Subway Surfers</p>
-      <p class="mh">Aide</p>
-      <button class="mi" id="b-help" type="button">Règles du jeu</button>
       <button class="mi" id="b-claim" type="button">Un nom refusé à tort ?</button>
       <button class="mi" id="b-admin" type="button" hidden>Réclamations</button>
-      <p class="mh">Ailleurs</p>
-      <button class="mi" id="b-radio" type="button">Radio Music Discovery <small>▶</small></button>
-      <a class="mi" href="https://amelienito.github.io/" target="_blank" rel="noopener">Les autres créations <small>↗</small></a>
+      <button class="mi" id="b-retour" type="button">Un retour ? Un bug ?</button>
+      <a class="mi" href="https://amelienito.github.io/#cite-3-chinois">Les autres jeux <small>↗</small></a>
+      <button class="mi end" id="b-end" type="button">Terminer la partie</button>
     </nav>
   </header>
 
@@ -988,7 +996,8 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
   /* ---------- Fiche pays ---------- */
   function select(cc, focus) {
     if (mode !== 'free') return;
-    S.sel = (S.sel === cc && !focus) ? null : cc; if (S.sel !== revealCc) revealCc = null;
+    // un clic sur un pays ouvre sa fiche, avec les noms qu'on y a déjà posés (avant : il fallait un double-clic, que personne ne trouvait)
+    S.sel = (S.sel === cc && !focus) ? null : cc; revealCc = S.sel;
     paintAll(); renderCard();
     if (S.sel && focus !== false) focusOn(S.sel);
     var i = $('in-free'); if (i && S.sel && matchMedia('(pointer:fine)').matches) i.focus();
@@ -998,15 +1007,17 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     var c = $('card');
     if (!S.sel || mode !== 'free') { c.hidden = true; return; }
     var cc = S.sel, o = cs(cc), k = CONT[cc];
-    var rows = [], open = revealCc === cc;
+    var rows = [], n = 0;
     o.names.forEach(function (x) {
-      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '">' + esc(x.name) + (x.rare ? ' <i>PÉPITE</i>' : '') + (x.half ? ' <i>½ ORIGINE</i>' : '') + (x.prov ? ' <i>EN VÉRIF</i>' : '') + '</div>');
-      if (x.slots === 2) rows.push('<div class="slot on rare">↳ place prise</div>');
+      n++;
+      rows.push('<div class="slot on' + (x.rare ? ' rare' : '') + (x.prov ? ' prov' : '') + '"><em>' + n + '</em><span>' + esc(x.name) + '</span>' + (x.rare ? '<i>PÉPITE</i>' : '') + (x.half ? '<i>½ ORIGINE</i>' : '') + (x.prov ? '<i>EN VÉRIF</i>' : '') + '</div>');
+      if (x.slots === 2) { n++; rows.push('<div class="slot on rare"><em>' + n + '</em><span>↳ sa pépite compte double</span></div>'); }
     });
     var filled = o.names.reduce(function (a, x) { return a + (x.slots || 1); }, 0);
-    while (filled < 3 - 0.01 && rows.length < 3) { rows.push('<div class="slot">à trouver</div>'); filled++; }
-    c.className = 'card' + (open ? ' open' : '');
-    c.innerHTML = '<span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + ' · <b>' + fmtN(o.n) + '/3</b></span><button class="x" type="button" id="card-x" aria-label="Retirer le pays ciblé">✕</button>' + (open ? '<div class="slots">' + rows.join('') + '</div>' : '');
+    while (filled < 3 - 0.01 && rows.length < 3) { n++; rows.push('<div class="slot"><em>' + n + '</em><span>à trouver</span></div>'); filled++; }
+    c.className = 'card open';
+    c.innerHTML = '<div class="card-h"><span class="pillt">' + flag(cc) + ' ' + esc(nameOf(cc)) + '</span><b class="card-n' + (o.n >= 3 ? ' ok' : '') + '">' + fmtN(o.n) + '/3</b><button class="x" type="button" id="card-x" aria-label="Fermer la fiche du pays">✕</button></div>' +
+      '<small class="card-l">' + (o.names.length ? 'Tes noms pour ce pays' : 'Aucun nom ici pour l’instant') + '</small><div class="slots">' + rows.join('') + '</div>';
     c.hidden = false;
     $('card-x').onclick = function () { S.sel = null; revealCc = null; paintAll(); renderCard(); };
   }
@@ -1482,11 +1493,14 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
       '<pre class="share" id="share-t">' + esc(shareText()) + '</pre>' +
       (board.length ? '<p style="color:var(--dim);margin:12px 0 0">Meilleurs scores : ' + board.map(function (b) { return fmt(b.pts); }).join(' · ') + '</p>' : '') +
       '<div class="btns"><button class="btn pri" id="e-share" type="button">Copier / partager</button><button class="btn" id="e-cont" type="button">Continuer</button><button class="btn" id="e-new" type="button">Nouvelle partie</button></div>';
+    osbPied('fin de partie, noms libres');
     open('m-end');
     $('e-share').onclick = function () { shareOut(shareText(), $('e-share')); };
     $('e-cont').onclick = function () { close('m-end'); };
     $('e-new').onclick = function () { var bn = $('e-new'); if (!bn.dataset.sure) { bn.dataset.sure = '1'; bn.dataset.l = bn.textContent; bn.textContent = 'Sûr·e ? Clique encore'; setTimeout(function () { delete bn.dataset.sure; bn.textContent = bn.dataset.l; }, 3500); return; } delete bn.dataset.sure; bn.textContent = bn.dataset.l; { fresh(); S.saved = false; persist(); paintAll(); renderCard(); renderPills(); say('Nouvelle partie. À toi !', 'info'); close('m-end'); } };
   }
+  /* osb.js, le fichier commun aux jeux d'OSB Corporation : en fin de partie, la ligne des retours et les autres jeux */
+  function osbPied(contexte) { try { if (window.OSB) window.OSB.pied($('end-body'), { ici: 'cite-3-chinois', contexte: contexte }); } catch (e) {} }
   function shareOut(text, btn) {
     var done = function () { if (btn) { var o = btn.textContent; btn.textContent = 'Copié !'; setTimeout(function () { btn.textContent = o; }, 1600); } };
     if (navigator.share) { navigator.share({ text: text }).catch(function () {}); return; }
@@ -1662,6 +1676,7 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
       '<div class="dstats">' + D.list.map(function (id, i) { var e = entryById(id), r = D.rounds[i]; return '<div class="stat"><b>' + (e ? flag(e.cc[0]) : '') + '</b><small>' + (e ? esc(e.name) : '') + '</small></div>'; }).slice(0, 3).join('') + '</div>' +
       (D.unl && D.unl.length ? revealHtml('Débloqués dans les noms libres', D.unl, D.unlPts, true) : '') +
       '<div class="btns"><button class="btn pri" id="d-share" type="button">Copier / partager</button><button class="btn" id="d-more" type="button">Encore un défi</button><button class="btn" id="d-back" type="button">Noms libres</button></div>';
+    osbPied('fin du défi du jour');
     open('m-end');
     $('d-share').onclick = function () { shareOut(dailyShare(), $('d-share')); };
     $('d-more').onclick = function () { close('m-end'); startDaily('r' + Math.random().toString(36).slice(2, 8), true); };
@@ -1691,6 +1706,8 @@ jsVectorMap.addMap("world",{insets:[{width:900,top:0,left:0,height:440.706310744
     else if (b.hasAttribute('data-cc')) { var cc = b.getAttribute('data-cc'); flash(cc); focusOn(cc); }
   });
   $('b-claim').onclick = function () { openClaim(''); };
+  $('b-retour').onclick = function () { if (window.OSB) window.OSB.retour({ ici: 'cite-3-chinois' }); };
+  window.addEventListener('load', function () { if (window.OSB) window.OSB.ici('cite-3-chinois'); });
   window.__rand = function () {
     var pool = Object.keys(NAMES).filter(function (c) { return pathEls[c] && cs(c).n < 3 && c !== S.sel; });
     if (!pool.length) return;
